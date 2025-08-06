@@ -1,3 +1,3 @@
 # .gitignore
-./guiding_center_solver/build/
-./guiding_center_solver/external/
+/guiding_center_solver/build
+/guiding_center_solver/external

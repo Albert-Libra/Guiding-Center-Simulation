@@ -1,2 +1,0 @@
-f77 -c plotxy.f letter.f blocka.f post.f 
-f77 plotxy.o letter.o blocka.o post.o  -o ../bin/plotxy
