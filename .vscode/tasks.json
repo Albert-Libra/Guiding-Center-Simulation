@@ -9,7 +9,10 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\..\\build\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\..\\build\\${fileBasenameNoExtension}.exe",
+                "-L${workspaceFolder}\\guiding_center_solver\\external\\IGRF",
+                "-ligrf13",
+                "-lgfortran"
             ],
             "options": {
                 "cwd": "${fileDirname}"
