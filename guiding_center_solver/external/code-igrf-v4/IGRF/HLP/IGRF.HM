@@ -1,0 +1,25 @@
+// MAKEHELP.BAT generated Help Map file.  Used by IGRF.HPJ. 
+ 
+// Commands (ID_* and IDM_*) 
+HID_PROFILE_OF                          0x18000
+HID_IGRFPROFILE_OFLONGITUDE             0x18001
+HID_IGRFPROFILE_OFHEIGHT                0x18002
+HID_IGRFPROFILE_OFYEARS                 0x18003
+HID_PROFILE_OFLATITUDE                  0x18004
+ 
+// Prompts (IDP_*) 
+ 
+// Resources (IDR_*) 
+HIDR_MAINFRAME                          0x20002
+HIDR_IGRFTYPE                           0x20006
+HIDR_IGRFEDIT                           0x20007
+ 
+// Dialogs (IDD_*) 
+HIDD_ABOUTBOX                           0x20064
+HIDD_SPLASH                             0x20069
+HIDD_PROFILE_DATE                       0x2006A
+HIDD_PROFILE_LAT                        0x2006B
+HIDD_PROFILE_LONG                       0x2006C
+HIDD_PROFILE_HEIGHT                     0x2006D
+ 
+// Frame Controls (IDW_*) 

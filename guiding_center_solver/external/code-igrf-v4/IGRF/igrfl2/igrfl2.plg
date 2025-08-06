@@ -1,0 +1,37 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: igrfl2 - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating command line "rc.exe /l 0x409 /fo"Debug/Igrf.res" /i "\Geophys\IGRF" /d "_DEBUG" "E:\Geophys\IGRF\Igrf.RC"" 
+Creating temporary file "C:\DOCUME~1\DEFAUL~2\LOCALS~1\Temp\RSPF.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /Fp"Debug/igrfl2.pch" /Yu"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\Geophys\IGRF\IGRFDLG.CPP"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DEFAUL~2\LOCALS~1\Temp\RSPF.tmp" 
+Creating temporary file "C:\DOCUME~1\DEFAUL~2\LOCALS~1\Temp\RSP10.tmp" with contents
+[
+/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /Fp"Debug/igrfl2.pch" /Yc"stdafx.h" /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\Geophys\IGRF\igrfl2\StdAfx.cpp"
+]
+Creating command line "cl.exe @C:\DOCUME~1\DEFAUL~2\LOCALS~1\Temp\RSP10.tmp" 
+Creating command line "link.exe -lib /nologo /out:"Debug\igrfl2.lib"  .\Debug\IGRFDLG.OBJ .\Debug\StdAfx.obj .\Debug\Igrf.res "
+<h3>Output Window</h3>
+Compiling resources...
+Compiling...
+StdAfx.cpp
+Compiling...
+IGRFDLG.CPP
+Creating library...
+
+
+
+<h3>Results</h3>
+igrfl2.lib - 0 error(s), 0 warning(s)
+</pre>
+</body>
+</html>

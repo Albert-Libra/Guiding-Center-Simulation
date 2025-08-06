@@ -1,0 +1,46 @@
+!MS$FREEFORM
+! Microsoft Developer Studio generated include file.
+! Used by Igrf.RC
+!
+      integer, parameter :: IDR_MAINFRAME                   = 2
+      integer, parameter :: IDS_CANNOT_OPEN_FILE            = 3
+      integer, parameter :: IDR_IGRFTYPE                    = 6
+      integer, parameter :: IDR_IGRFEDIT                    = 7
+      integer, parameter :: IDD_ABOUTBOX                    = 100
+      integer, parameter :: IDI_ICON1                       = 102
+      integer, parameter :: IDD_SPLASH                      = 105
+      integer, parameter :: IDD_PROFILE_DATE                = 106
+      integer, parameter :: IDD_PROFILE_LAT                 = 107
+      integer, parameter :: IDB_CEMPBITMAP                  = 107
+      integer, parameter :: IDD_PROFILE_LONG                = 108
+      integer, parameter :: IDD_PROFILE_HEIGHT              = 109
+      integer, parameter :: IDI_HORSE                       = 114
+      integer, parameter :: IDC_START                       = 123
+      integer, parameter :: IDC_END                         = 124
+      integer, parameter :: IDC_N                           = 125
+      integer, parameter :: IDC_LAT                         = 126
+      integer, parameter :: IDC_LONG                        = 127
+      integer, parameter :: IDC_HEIGHT                      = 128
+      integer, parameter :: IDC_PYEAR                       = 132
+      integer, parameter :: IDC_MODEL                       = 133
+      integer, parameter :: IDC_SMODEL                      = 134
+      integer, parameter :: IDC_YEARRANGE                   = 135
+      integer, parameter :: IDC_BIGICON                     = 1008
+      integer, parameter :: IDC_HORSEICON                   = 1009
+      integer, parameter :: ID_PROFILE_OF                   = 32768
+      integer, parameter :: ID_IGRFPROFILE_OFLONGITUDE      = 32769
+      integer, parameter :: ID_IGRFPROFILE_OFHEIGHT         = 32770
+      integer, parameter :: ID_IGRFPROFILE_OFYEARS          = 32771
+      integer, parameter :: ID_PROFILE_OFLATITUDE           = 32772
+      integer, parameter :: IDS_ERRYEAR                     = 61216
+      integer, parameter :: IDS_ERRHEIGHT                   = 61217
+      integer, parameter :: IDS_ERRLAT                      = 61218
+      integer, parameter :: IDS_ERRLONGITUDE                = 61219
+      integer, parameter :: IDS_ERR_NOIGRFIP                = 61221
+      integer, parameter :: IDS_ERR_IPFEWLINES              = 61222
+      integer, parameter :: IDS_ERR_IPNOMODEL               = 61223
+      integer, parameter :: IDS_ERR_IPFEWFILES              = 61224
+      integer, parameter :: IDS_ERR_IPTOMANYFILES           = 61225
+      integer, parameter :: IDS_ERR_BADYEARFORMAT           = 61226
+      integer, parameter :: IDS_ERR_BADYEARS                = 61227
+      integer, parameter :: IDS_ERR_IPBADNUMFILES           = 61228

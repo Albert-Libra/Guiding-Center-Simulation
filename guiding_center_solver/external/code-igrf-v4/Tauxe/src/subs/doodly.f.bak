@@ -1,0 +1,108 @@
+c_________________________________________________________________
+        subroutine doodly(s,dat,n)
+c
+c       reads in data as character string, then
+c       splits it up into treatment,type,intensity,dec,inc fields
+c
+        dimension dat(5,*)
+        character*116 line
+        character*20 dum,s
+c
+        do 60  j=1,1000
+c
+c       read in a line of data
+c
+            read(*,'(a)',end=999)line
+            k=1
+            do 10 i=k,116
+c
+c       peel off sample name
+c
+            if(line(i:i).eq.' ')then
+               s=line(k:i-1)
+               k=i
+               goto 15
+            endif
+ 10      continue
+c
+c       step through blanks and separate treatment and type
+c
+ 15     call blank(line,k)
+        do  20 i=k,116
+          if(line(i:i).eq.'.')then
+           dum=line(k:i-1)
+           read(dum,*)dat(1,j)
+           dum=line(i+1:i+2)
+           read(dum,*)dat(2,j)
+           k=i+3
+           goto 25
+          endif
+ 20     continue
+c
+c       step through blanks, and peel off intensity
+c
+ 25     call blank(line,k)
+        do 30 i=k,116
+         if(line(i:i).eq.' ')then
+           dum=line(k:i-1)
+           read(dum,*)dat(3,j)
+           k=i
+           goto 35
+         endif
+ 30     continue
+c
+c       step through blanks and peel off declination
+c
+ 35     call blank(line,k)
+        do 40 i=k,116
+         if(line(i:i).eq.' ')then
+          dum=line(k:i-1)
+          read(dum,*)dat(4,j)
+          k=i
+          goto 45
+         endif
+ 40     continue
+c
+c       step through blanks and peel off inclination
+c
+ 45     call blank(line,k)
+        do 50 i=k,116
+         if(line(i:i).eq.' ')then
+          dum=line(k:i-1)
+          read(dum,*)dat(5,j)
+          k=1
+          goto 60
+         endif
+ 50     continue
+ 60     continue
+ 999    n=j-1
+        return
+        end
+c_________________________________________________________________
+        subroutine blank(line,k)
+        character*116 line
+        do 1 i=k,116
+        if(line(i:i).eq.' ') then
+        goto 1
+        else
+        k=i
+        endif
+        return
+ 1      continue
+        k=i
+        return
+        end
+c_____________________________________________________________
+        subroutine dummy(line,k)
+        character*116 line
+        do 1 i=k,116
+        if(line(i:i).ne.' ') then
+        goto 1
+        else
+        k=i
+        endif
+        return
+ 1      continue
+        k=i
+        return
+        end

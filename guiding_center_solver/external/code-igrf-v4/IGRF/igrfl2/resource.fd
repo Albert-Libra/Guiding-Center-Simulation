@@ -1,0 +1,23 @@
+!MS$FREEFORM
+! Microsoft Developer Studio generated include file.
+! Used by IGRFGEN.RC
+!
+      integer, parameter :: IDD_IGRFDLG                     = 101
+      integer, parameter :: IDC_YEAR                        = 103
+      integer, parameter :: IDC_MONTH                       = 104
+      integer, parameter :: IDC_ALTITUDE                    = 105
+      integer, parameter :: IDC_LATDEG                      = 106
+      integer, parameter :: IDC_LATMIN                      = 107
+      integer, parameter :: IDC_LONGDEG                     = 108
+      integer, parameter :: IDC_LONGMIN                     = 109
+      integer, parameter :: IDC_TOTAL                       = 110
+      integer, parameter :: IDC_DEC                         = 111
+      integer, parameter :: IDC_X                           = 113
+      integer, parameter :: IDC_Y                           = 114
+      integer, parameter :: IDC_Z                           = 115
+      integer, parameter :: IDC_INC                         = 116
+      integer, parameter :: ID_IGRF_HELP                    = 122
+      integer, parameter :: IDC_NORTH                       = 1001
+      integer, parameter :: IDC_SOUTH                       = 1002
+      integer, parameter :: IDC_EAST                        = 1003
+      integer, parameter :: IDC_WEST                        = 1004
