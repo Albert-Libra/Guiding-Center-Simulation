@@ -12,7 +12,7 @@ typedef void (__stdcall *igrf14syn_func)(
 int main() {
     // 加载 DLL（可指定绝对路径或相对路径）
     // HMODULE hDLL = LoadLibraryW(L"..\\external\\IGRF\\igrf13.dll");
-    HMODULE hDLL = LoadLibraryW(L"..\\..\\external\\igrf14.dll");
+    HMODULE hDLL = LoadLibraryW(L"..\\..\\external\\IGRF\\igrf14.dll");
     if (!hDLL) {
         cerr << "无法加载 DLL" << endl;
         return 1;
