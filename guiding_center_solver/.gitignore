@@ -1,4 +1,5 @@
 # .gitignore for guiding_center_solver project
 build/
-external/IGRF/
+
+
 *.exe
