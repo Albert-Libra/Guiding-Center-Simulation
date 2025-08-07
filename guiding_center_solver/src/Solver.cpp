@@ -1,48 +1,52 @@
 #include <iostream>
 #include <windows.h>
+#include <string>
 
-using namespace std;
+class DllLoader {
+public:
+    DllLoader(const std::string& dllPath) : hLib(nullptr) {
+        hLib = LoadLibraryA(dllPath.c_str());
+        if (!hLib) {
+            std::cerr << "Failed to load DLL: " << dllPath << std::endl;
+        }
+    }
 
-// 定义函数指针类型，参数和 Fortran 子程序一致
-// typedef void (__stdcall *igrf13syn_func)(
-typedef void (__stdcall *igrf14syn_func)(
-    int*, double*, int*, double*, double*, double*, double*, double*, double*, double*
-);
+    ~DllLoader() {
+        if (hLib) {
+            FreeLibrary(hLib);
+        }
+    }
+
+    // 获取任意函数指针
+    template<typename FuncType>
+    FuncType getFunction(const std::string& funcName) {
+        if (!hLib) return nullptr;
+        return reinterpret_cast<FuncType>(GetProcAddress(hLib, funcName.c_str()));
+    }
+
+    bool isLoaded() const { return hLib != nullptr; }
+
+private:
+    HMODULE hLib;
+};
+
+// 用法示例
+typedef void (*FuncType)(int*, int*, double*, double(*)[3], double*, double(*)[3]);
 
 int main() {
-    // 加载 DLL（可指定绝对路径或相对路径）
-    // HMODULE hDLL = LoadLibraryW(L"..\\external\\IGRF\\igrf13.dll");
-    HMODULE hDLL = LoadLibraryW(L"..\\..\\external\\IGRF\\igrf14.dll");
-    if (!hDLL) {
-        cerr << "无法加载 DLL" << endl;
-        return 1;
+    DllLoader loader("../../external/IRBEM/libirbem.dll");
+    if (!loader.isLoaded()) return 1;
+
+    // 获取 geo2gsm_ 函数
+    FuncType geo2gsm = loader.getFunction<FuncType>("geo2gsm_");
+    if (geo2gsm) {
+        std::cout << "Called geo2gsm()" << std::endl;
+        // geo2gsm(...); // 这里可以传递参数调用
+    } else {
+        std::cout << "Function geo2gsm not found." << std::endl;
     }
 
-    // 获取函数地址（Fortran 通常带下划线）
-    // igrf13syn_func igrf13syn = (igrf13syn_func)GetProcAddress(hDLL, "igrf13syn_");
-    igrf14syn_func igrf14syn = (igrf14syn_func)GetProcAddress(hDLL, "igrf14syn_");
-    // if (!igrf13syn) {
-    if (!igrf14syn) {
-        cerr << "无法获取函数地址" << endl;
-        FreeLibrary(hDLL);
-        return 1;
-    }
-
-    // 准备参数
-    int isv = 0;
-    double date = 2020.0;
-    int itype = 1;
-    double alt = 0.0;
-    double colat = 45.0;
-    double elong = 120.0;
-    double x, y, z, f;
-
-    // 调用 DLL 中的函数
-    // igrf13syn(&isv, &date, &itype, &alt, &colat, &elong, &x, &y, &z, &f);
-    igrf14syn(&isv, &date, &itype, &alt, &colat, &elong, &x, &y, &z, &f);
-
-    cout << "Magnetic field components: X=" << x << " Y=" << y << " Z=" << z << " F=" << f << endl;
-
-    FreeLibrary(hDLL);
+    // 你可以用 loader.getFunction<OtherFuncType>("other_func") 获取其他函数
+    
     return 0;
 }
