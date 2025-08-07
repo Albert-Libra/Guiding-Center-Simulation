@@ -2,6 +2,8 @@
 #include <windows.h>
 #include <string>
 
+using namespace std;
+
 class DllLoader {
 public:
     DllLoader(const std::string& dllPath) : hLib(nullptr) {
@@ -46,7 +48,14 @@ int main() {
         std::cout << "Function geo2gsm not found." << std::endl;
     }
 
-    // 你可以用 loader.getFunction<OtherFuncType>("other_func") 获取其他函数
-    
+    int year = 2020;
+    int idoy = 10;
+    double ut = 0.0;
+    double xGEO[3] = {2, 3, 4};
+    double psi;
+    double xGSM[3];
+    geo2gsm(&year, &idoy, &ut, &xGEO, &psi, &xGSM);
+
+    cout << xGSM[0] << ", " << xGSM[1] << ", " << xGSM[2] << endl;
     return 0;
 }
