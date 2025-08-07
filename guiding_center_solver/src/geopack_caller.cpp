@@ -1,10 +1,10 @@
 #include <windows.h>
 #include <iostream>
-#include "../include/geopack_caller.h"
+#include "geopack_caller.h"
 
 // 全局指针定义
 Geopack_recalc recalc = nullptr;
-Geopack_igrf_geo igrf_geo = nullptr;
+Geopack_igrf_gsm igrf_gsm = nullptr;
 static HMODULE lib_geopack = nullptr;
 
 bool init_geopack() {
@@ -15,13 +15,13 @@ bool init_geopack() {
         return false;
     }
     recalc = (Geopack_recalc)GetProcAddress(lib_geopack, "recalc_08_");
-    igrf_geo = (Geopack_igrf_geo)GetProcAddress(lib_geopack, "igrf_geo_08_");
-    if (!recalc || !igrf_geo) {
+    igrf_gsm = (Geopack_igrf_gsm)GetProcAddress(lib_geopack, "igrf_gsw_08_");
+    if (!recalc || !igrf_gsm) {
         std::cerr << "Failed to get function from DLL." << std::endl;
         FreeLibrary(lib_geopack);
         lib_geopack = nullptr;
         recalc = nullptr;
-        igrf_geo = nullptr;
+        igrf_gsm = nullptr;
         return false;
     }
     return true;

@@ -1,19 +1,16 @@
 #include <iostream>
-#include "../include/geopack_caller.h"
+#include <vector>
+
+#include "field_calculator.h"
+
+using namespace std;
 
 int main() {
-    if (!init_geopack()) {
-        std::cout << "Geopack init failed." << std::endl;
-        return 1;
-    }
 
-    int IYEAR=1997, IDAY=350, IHOUR=21, MIN=0;
-    double ISEC=0, VGSEX=-304.0, VGSEY=-16.0+29.78, VGSEZ=4.0;
-    recalc(&IYEAR, &IDAY, &IHOUR, &MIN, &ISEC, &VGSEX, &VGSEY, &VGSEZ);
-
-    double R=1, theta=1.57, phi=0.0, BR, BTHETA, BPHI;
-    igrf_geo(&R, &theta, &phi, &BR, &BTHETA, &BPHI);
-
-    std::cout << "BR: " << BR << ", BTHETA: " << BTHETA << ", BPHI: " << BPHI << std::endl;
+    // 测试 Bvec 函数
+    double t = 1577836800; // 假设时间为0
+    double xgsm = 1.0, ygsm = 0.0, zgsm = 0.0;
+    vector<double> B = Bvec(t, xgsm, ygsm, zgsm);
+    cout << "Bvec: [" << B[0] << ", " << B[1] << ", " << B[2] << "]" << endl;
     return 0;
 }
