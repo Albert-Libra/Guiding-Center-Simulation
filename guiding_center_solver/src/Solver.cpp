@@ -33,28 +33,55 @@ private:
 };
 
 // 用法示例
-typedef void (__stdcall *FuncType)(int*, int*, double*, double(*)[3], double*, double(*)[3]);
+typedef void (__stdcall *FuncType)(int*, int*,int*, int*, double*, double*, double*, double*);
+typedef void (__stdcall *FuncType1)(double*, double*, double*, double*, double*, double*);
 
 int main() {
-    DllLoader loader("../../external/IRBEM/libirbem.dll");
+    DllLoader loader("../../external/Geopack-2008/Geopack-2008_dp.dll");
     if (!loader.isLoaded()) return 1;
 
     // 获取 geo2gsm_ 函数
-    FuncType geo2gsm = loader.getFunction<FuncType>("geo2gsm_");
-    if (geo2gsm) {
-        cout << "Called geo2gsm()" << std::endl;
+    FuncType recalc = loader.getFunction<FuncType>("recalc_08_");
+    if (recalc) {
+        cout << "Called recalc()" << std::endl;
     } else {
-        cout << "Function geo2gsm not found." << std::endl;
+        cout << "Function recalc not found." << std::endl;
     }
 
-    int year = 2020;
-    int idoy = 10;
-    double ut = 0.0;
-    double xGEO[3] = {2, 3, 4};
-    double psi;
-    double xGSM[3];
-    geo2gsm(&year, &idoy, &ut, &xGEO, &psi, &xGSM);
+    FuncType1 igrf_geo = loader.getFunction<FuncType1>("igrf_geo_08_");
+    if (igrf_geo) {
+        cout << "Called igrf_geo()" << std::endl;
+    } else {
+        cout << "Function igrf_geo not found." << std::endl;
+    }
 
-    cout << xGSM[0] << ", " << xGSM[1] << ", " << xGSM[2] << endl;
+    int IYEAR=1997;
+    int IDAY=350;
+    int IHOUR=21;
+    int MIN=0;
+    double ISEC=0;
+    double VGSEX=-304.0;
+    double VGSEY= -16.0+29.78;
+    double VGSEZ=   4.0;
+
+    recalc(&IYEAR,&IDAY,&IHOUR,&MIN,&ISEC,&VGSEX,&VGSEY,&VGSEZ);
+
+    double R=1;
+    double theta=1.57;
+    double phi=0.0;
+    double BR, BTHETA, BPHI;
+    igrf_geo(&R, &theta, &phi, &BR, &BTHETA, &BPHI);
+
+    cout << "BR: " << BR << ", BTHETA: " << BTHETA << ", BPHI: " << BPHI << endl;
+
+    // int year = 2020;
+    // int idoy = 10;
+    // double ut = 0.0;
+    // double xGEO[3] = {2, 3, 4};
+    // double psi;
+    // double xGSM[3];
+    // geo2gsm(&year, &idoy, &ut, &xGEO, &psi, &xGSM);
+
+    // cout << xGSM[0] << ", " << xGSM[1] << ", " << xGSM[2] << endl;
     return 0;
 }
