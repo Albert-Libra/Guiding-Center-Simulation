@@ -41,8 +41,8 @@ vector<double> B_grad_curv(const double& t,
                            const double& xgsm, 
                            const double& ygsm, 
                            const double& zgsm,
-                           const double& dr=0.01,
-                           const double& dt=0.01) {
+                           double dr,
+                           double dt) {
     // 计算磁场梯度和曲率
     vector<double> B_arr(6, 0.0);//output vector for B gradient and curvature
 
@@ -91,6 +91,6 @@ vector<double> B_grad_curv(const double& t,
     B_arr[3] = eb.dot(grad_eb.row(0));
     B_arr[4] = eb.dot(grad_eb.row(1));
     B_arr[5] = eb.dot(grad_eb.row(2));
-    
+
     return B_arr;
 }
