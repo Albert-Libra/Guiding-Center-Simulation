@@ -33,7 +33,7 @@ private:
 };
 
 // 用法示例
-typedef void (*FuncType)(int*, int*, double*, double(*)[3], double*, double(*)[3]);
+typedef void (__stdcall *FuncType)(int*, int*, double*, double(*)[3], double*, double(*)[3]);
 
 int main() {
     DllLoader loader("../../external/IRBEM/libirbem.dll");
@@ -42,10 +42,9 @@ int main() {
     // 获取 geo2gsm_ 函数
     FuncType geo2gsm = loader.getFunction<FuncType>("geo2gsm_");
     if (geo2gsm) {
-        std::cout << "Called geo2gsm()" << std::endl;
-        // geo2gsm(...); // 这里可以传递参数调用
+        cout << "Called geo2gsm()" << std::endl;
     } else {
-        std::cout << "Function geo2gsm not found." << std::endl;
+        cout << "Function geo2gsm not found." << std::endl;
     }
 
     int year = 2020;
