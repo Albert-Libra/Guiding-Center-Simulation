@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include <ctime>
 #include <cmath>
 #include <Eigen/Dense>
@@ -18,7 +17,7 @@ Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const dou
 
     if (!init_geopack()) {
         cout << "Geopack init failed." << endl;
-        return Vector3d();
+        return Vector3d::Zero();
     }
 
     int IYEAR = time_info->tm_year + 1900; // tm_year基于1900
@@ -30,23 +29,22 @@ Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const dou
     double vgsex = -400.0, vgsey = 0.0, vgsez = 0.0; // GSW coordinates are reduced to GSM at this condition
     recalc(&IYEAR, &IDAY, &IHOUR, &MIN, &ISEC, &vgsex, &vgsey, &vgsez);
 
-    // 定义一个长度为3的vector，用来存储计算得到的磁场分量
-    vector<double> B(3, 0.0);
+    double Bx, By, Bz;
 
     double xgsm_local = xgsm, ygsm_local = ygsm, zgsm_local = zgsm;
-    igrf_gsm(&xgsm_local, &ygsm_local, &zgsm_local, &B[0], &B[1], &B[2]);
+    igrf_gsm(&xgsm_local, &ygsm_local, &zgsm_local, &Bx, &By, &Bz);
 
-    return Vector3d(B[0], B[1], B[2]);
+    return Vector3d(Bx, By, Bz);
 }
 
 // calculate the gradient and curvature of Bvec
-vector<double> B_grad_curv(const double& t,         //Epoch time in seconds
+VectorXd B_grad_curv(const double& t,         //Epoch time in seconds
                            const double& xgsm,      //X position in GSM coordinates in RE
                            const double& ygsm,      //Y position in GSM coordinates in RE
                            const double& zgsm,      //Z position in GSM coordinates in RE
-                           const double& dr) {             //Spatial step size in RE for gradient and curvature calculation
+                           const double& dr) {      //Spatial step size in RE for gradient and curvature calculation
     // 计算磁场梯度和曲率
-    vector<double> B_arr(6, 0.0);//output vector for B gradient and curvature
+    VectorXd B_arr(6);//output vector for B gradient and curvature
 
     // 计算当前位置的磁场强度
     Vector3d B0 = Bvec(t, xgsm, ygsm, zgsm);
@@ -89,9 +87,9 @@ vector<double> B_grad_curv(const double& t,         //Epoch time in seconds
     grad_eb.col(1) = (eb_y_plus - eb_y_minus) / (2 * dr);
     grad_eb.col(2) = (eb_z_plus - eb_z_minus) / (2 * dr);
 
-    B_arr[3] = eb.dot(grad_eb.row(0));
-    B_arr[4] = eb.dot(grad_eb.row(1));
-    B_arr[5] = eb.dot(grad_eb.row(2));
+    B_arr[3] = eb.dot(grad_eb.row(0).transpose());
+    B_arr[4] = eb.dot(grad_eb.row(1).transpose());
+    B_arr[5] = eb.dot(grad_eb.row(2).transpose());
 
     return B_arr;
 }
@@ -101,7 +99,7 @@ Vector3d deb_dt(const double& t,
                 const double& xgsm, 
                 const double& ygsm, 
                 const double& zgsm, 
-                Vector3d& v,
+                const Vector3d& v,
                 const double& dt) {
     
     Vector3d B_minus = Bvec(t - dt, xgsm-dt * v[0], ygsm - dt * v[1], zgsm - dt * v[2]);
