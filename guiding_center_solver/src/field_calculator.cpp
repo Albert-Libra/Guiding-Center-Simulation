@@ -100,8 +100,9 @@ Vector3d deb_dt(const double& t,
                 const double& ygsm, 
                 const double& zgsm, 
                 const Vector3d& v,
-                const double& dt) {
+                const double& dr) {
     
+    double dt = dr/ v.norm(); //时间步长
     Vector3d B_minus = Bvec(t - dt, xgsm-dt * v[0], ygsm - dt * v[1], zgsm - dt * v[2]);
     Vector3d B_plus = Bvec(t + dt, xgsm+dt * v[0], ygsm + dt * v[1], zgsm + dt * v[2]);
 
