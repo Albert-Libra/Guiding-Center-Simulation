@@ -23,6 +23,7 @@ VectorXd dydt(const VectorXd arr_in){
         cerr << "Input vector must have exactly 5 elements." << endl;
         return {};
     }
+    
     VectorXd arr_out(5);
 
     double t = arr_in[0];
@@ -42,19 +43,16 @@ VectorXd dydt(const VectorXd arr_in){
 
     double gamm = sqrt(1. + pow(p_para * c,2) / pow(E0, 2) + 2. * mu * Bt / E0);
     Vector3d vd_ExB = E.cross(B)/Bt/Bt*0.15696123; // ExB drift velocity in RE/s
-    // cout << "vd_ExB: [" << vd_ExB[0] << ", " << vd_ExB[1] << ", " << vd_ExB[2] << "]" << endl;
     Vector3d vd_grad = mu*B.cross(grad_B)/(gamm * q * pow(Bt,2))*24.6368279; //gradient drift velocity in RE/s
-    // cout << "vd_grad: [" << vd_grad[0] << ", " << vd_grad[1] << ", " << vd_grad[2] << "]" << endl;
     Vector3d vd_curv = pow(p_para*c,2)/(gamm * E0 *q* pow(Bt,2)) * B.cross(curv_B)*24.6368279; //curvature drift velocity in RE/s
-    // cout << "vd_curv: [" << vd_curv[0] << ", " << vd_curv[1] << ", " << vd_curv[2] << "]" << endl;
     Vector3d v_para = p_para * pow(c,2) / (gamm * E0) * unit_B; //parallel velocity in RE/s
-    // cout << "v_para: [" << v_para[0] << ", " << v_para[1] << ", " << v_para[2] << "]" << endl;
     Vector3d v_total = vd_ExB + vd_grad + vd_curv + v_para;
 
-    double dp_dt = - mu / gamm * grad_B.dot(unit_B) +
-                    q*E.dot(unit_B)*6.371e-3 +
-                    gamm*E0/pow(c,2)*v_total.dot(deb_dt(t, x, y, z, v_total, r_step));
-    // cout << "dp_dt: " << dp_dt << endl;
+    double dp_dt_1 = - mu / gamm * grad_B.dot(unit_B);
+    double dp_dt_2 = q*E.dot(unit_B)*6.371e-3;
+    double dp_dt_3 =  gamm*E0/pow(c,2)*v_total.dot(deb_dt(t, x, y, z, v_total, r_step));
+    double dp_dt = dp_dt_1 + dp_dt_2 + dp_dt_3;
+    
     double pB_pt = pBpt(t, x, y, z, t_step);
 
     arr_out[0] = 1.0;
@@ -63,6 +61,17 @@ VectorXd dydt(const VectorXd arr_in){
     arr_out[3] = v_total[2];
     arr_out[4] = dp_dt;
 
+    if (false){
+        cout << "\nPosition: [" << arr_in[1] << ", " << arr_in[2] << ", " << arr_in[3] << "]" << endl;
+        cout << "vd_ExB: [" << vd_ExB[0] << ", " << vd_ExB[1] << ", " << vd_ExB[2] << "]" << endl;
+        cout << "vd_grad: [" << vd_grad[0] << ", " << vd_grad[1] << ", " << vd_grad[2] << "]" << endl;
+        cout << "vd_curv: [" << vd_curv[0] << ", " << vd_curv[1] << ", " << vd_curv[2] << "]" << endl;
+        cout << "v_para: [" << v_para[0] << ", " << v_para[1] << ", " << v_para[2] << "]" << endl;
+        cout << "dp1: " << dp_dt_1*dt << endl;
+        cout << "dp2: " << dp_dt_2*dt << endl;
+        cout << "dp3: " << dp_dt_3*dt << endl;
+        cout << "dp: " << dp_dt*dt << endl;
+    }
     return arr_out;
 
 }
@@ -129,7 +138,7 @@ int test(){
         if (i % write_step == 0) {
             outfile.write(reinterpret_cast<const char*>(Y.data()), Y.size() * sizeof(double));
         }
-        // 每增加1%输出一次进度，先删除上一次输出再进行输出
+        // 每增加1%输出一次进度
         static int last_percent = -1;
         int percent = static_cast<int>(100.0 * i / num_steps);
         if (percent != last_percent) {
@@ -138,10 +147,17 @@ int test(){
             cout << "Progress: " << percent << "% (" << i << " / " << num_steps << ")" << flush;
             last_percent = percent;
         }
+        if (Y[1]*Y[1] + Y[2]*Y[2] + Y[3]*Y[3] < 1.0) {
+            cout << "\nParticle has reached the atmosphere (r < 1 RE). Stopping simulation." << endl;
+            break;
+        }
     }
     cout << "\nOutput file saved to: " << outFilePath << endl;
 
-    // 读取 result.gct 中的内容并简化存储
+
+
+
+    /* 读取 result.gct 中的内容并简化存储 */
     ifstream infile(outFilePath, ios::binary);
     if (!infile) {
         cerr << "Failed to open result.gct for reading." << endl;
@@ -181,7 +197,7 @@ int test(){
     }
 
     //输出读取的数据的前5位
-    for (long i = 0; i < 5; ++i) {
+    for (long i = 0; i < 10; ++i) {
         cout << "Step " << i << ": t=" << t_val[i] << ", x=" << x_val[i]
              << ", y=" << y_val[i] << ", z=" << z_val[i]
              << ", p_para=" << p_para_val[i] << endl;

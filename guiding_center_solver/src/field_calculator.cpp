@@ -106,7 +106,7 @@ Vector3d deb_dt(const double& t,
     Vector3d B_minus = Bvec(t - dt, xgsm-dt * v[0], ygsm - dt * v[1], zgsm - dt * v[2]);
     Vector3d B_plus = Bvec(t + dt, xgsm+dt * v[0], ygsm + dt * v[1], zgsm + dt * v[2]);
 
-    return (B_plus - B_minus) / (2 * dt);
+    return (B_plus/B_plus.norm() - B_minus/B_minus.norm()) / (2 * dt);
 }
 
 //计算磁场大小对时间的偏导

@@ -70,6 +70,19 @@
         "semaphore": "cpp",
         "stop_token": "cpp",
         "thread": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "*.m": "matlab"
+    },
+    "matlab.matlabpath": "D:\\APP\\matlab\\R2022b\\bin\\matlab.exe",
+    "matlab.mlintpath": "D:\\APP\\matlab\\R2022b\\bin\\win64\\mlint.exe",
+    "matlab.linterEncoding": "utf8",
+    "[matlab]":{
+        "files.encoding": "gb2312"
+    },
+    "cmake.ignoreCMakeListsMissing": true,
+    "matlab-interactive-terminal.pythonPath": "D:\\APP\\Python\\Python38\\python.exe",
+    "code-runner.runInTerminal": true,
+    "code-runner.executorMap":{
+        "matlab": "cd $dir && matlab -nosplash -nodesktop -r $fileNameWithoutExt"
     }
 }
