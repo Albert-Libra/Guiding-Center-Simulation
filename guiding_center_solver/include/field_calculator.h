@@ -9,3 +9,5 @@ std::vector<double> B_grad_curv(const double& t,
                            const double& ygsm, 
                            const double& zgsm,
                            double dr=0.01);
+
+Eigen::Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm);

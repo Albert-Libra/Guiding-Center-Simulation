@@ -9,6 +9,8 @@
 using namespace std;
 using namespace Eigen;
 
+// calculate the magnetic field vector in GSM coordinates
+// IGRF model for this version
 Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
     // t是epoch时间，将它转换为year、day、hour、minute、second
     time_t epoch_time = static_cast<time_t>(t);
@@ -37,6 +39,7 @@ Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const dou
     return Vector3d(B[0], B[1], B[2]);
 }
 
+// calculate the gradient and curvature of Bvec
 vector<double> B_grad_curv(const double& t,         //Epoch time in seconds
                            const double& xgsm,      //X position in GSM coordinates in RE
                            const double& ygsm,      //Y position in GSM coordinates in RE
@@ -91,4 +94,11 @@ vector<double> B_grad_curv(const double& t,         //Epoch time in seconds
     B_arr[5] = eb.dot(grad_eb.row(2));
 
     return B_arr;
+}
+
+//calculate the electric field vector in GSM coordinates
+Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    // For now, we assume the electric field is zero
+    // In a real application, you would calculate the electric field based on the model
+    return Vector3d(0.0, 0.0, 0.0);
 }

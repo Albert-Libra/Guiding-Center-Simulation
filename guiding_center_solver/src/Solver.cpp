@@ -28,16 +28,19 @@ vector<double> dydt(const vector<double> arr_in){
 
     Vector3d B = Bvec(t, x, y, z);
     double Bt = sqrt(B[0]*B[0] + B[1]*B[1] + B[2]*B[2]);
+    Vector3d E = Evec(t, x, y, z);
+
     vector<double> dB = B_grad_curv(t, x, y, z, 0.01);
     Vector3d grad_B(dB[0], B[1], B[2]);
     Vector3d curv_B(dB[3], dB[4], dB[5]);
     Vector3d unit_B(B[0] / Bt, B[1] / Bt, B[2] / Bt);
 
     double gamm = sqrt(1. + pow(p_para * c,2) / pow(E0, 2) + 2. * mu * Bt / E0);
+    Vector3d vd_ExB = E.cross(B)/Bt/Bt*0.15696123; // ExB drift velocity in RE/s
     Vector3d vd_grad = mu*B.cross(grad_B)/(gamm * q * pow(Bt,2))*24.6368279; //gradient drift velocity in RE/s
     Vector3d vd_curv = pow(p_para*c,2)/(gamm * E0 *q* pow(Bt,2)) * B.cross(curv_B)*24.6368279; //curvature drift velocity in RE/s
     Vector3d v_para = p_para * pow(c,2) / (gamm * E0) * unit_B; //parallel velocity in RE/s
-    Vector3d v_total = vd_grad + vd_curv + v_para;
+    Vector3d v_total = vd_ExB + vd_grad + vd_curv + v_para;
 
     Vector3d dpdt;
     return arr_out;
