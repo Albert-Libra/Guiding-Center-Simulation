@@ -10,4 +10,17 @@ std::vector<double> B_grad_curv(const double& t,
                            const double& zgsm,
                            double dr=0.01);
 
+Eigen::Vector3d deb_dt(const double& t, 
+                const double& xgsm, 
+                const double& ygsm, 
+                const double& zgsm, 
+                Vector3d& v,
+                const double& dt=0.01);
+
+double pBpt(const double& t, 
+                const double& xgsm, 
+                const double& ygsm, 
+                const double& zgsm, 
+                const double& dt=0.01);
+
 Eigen::Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm);

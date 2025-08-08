@@ -44,7 +44,7 @@ vector<double> B_grad_curv(const double& t,         //Epoch time in seconds
                            const double& xgsm,      //X position in GSM coordinates in RE
                            const double& ygsm,      //Y position in GSM coordinates in RE
                            const double& zgsm,      //Z position in GSM coordinates in RE
-                           double dr) {             //Spatial step size in RE for gradient and curvature calculation
+                           const double& dr) {             //Spatial step size in RE for gradient and curvature calculation
     // 计算磁场梯度和曲率
     vector<double> B_arr(6, 0.0);//output vector for B gradient and curvature
 
@@ -94,6 +94,35 @@ vector<double> B_grad_curv(const double& t,         //Epoch time in seconds
     B_arr[5] = eb.dot(grad_eb.row(2));
 
     return B_arr;
+}
+
+//计算磁场方向向量对时间的全导数
+Vector3d deb_dt(const double& t, 
+                const double& xgsm, 
+                const double& ygsm, 
+                const double& zgsm, 
+                Vector3d& v,
+                const double& dt) {
+    
+    Vector3d B_minus = Bvec(t - dt, xgsm-dt * v[0], ygsm - dt * v[1], zgsm - dt * v[2]);
+    Vector3d B_plus = Bvec(t + dt, xgsm+dt * v[0], ygsm + dt * v[1], zgsm + dt * v[2]);
+
+    return (B_plus - B_minus) / (2 * dt);
+}
+
+//计算磁场大小对时间的偏导
+double pBpt(const double& t, 
+                const double& xgsm, 
+                const double& ygsm, 
+                const double& zgsm, 
+                const double& dt) {
+    
+    Vector3d B_minus = Bvec(t - dt, xgsm, ygsm, zgsm);
+    double Bt_minus = B_minus.norm();
+    Vector3d B_plus = Bvec(t + dt, xgsm, ygsm, zgsm);
+    double Bt_plus = B_plus.norm();
+
+    return (Bt_plus - Bt_minus) / (2 * dt);
 }
 
 //calculate the electric field vector in GSM coordinates

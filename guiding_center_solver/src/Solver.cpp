@@ -9,6 +9,7 @@ using namespace std;
 using namespace Eigen;
 
 double E0, mu, q; //rest energy[MeV], 1st adiabatic invariant[MeV/nT], charge[e]
+double dt;
 
 const double c = 47.055; // Speed of light in RE/s
 
@@ -31,7 +32,7 @@ vector<double> dydt(const vector<double> arr_in){
     Vector3d E = Evec(t, x, y, z);
 
     vector<double> dB = B_grad_curv(t, x, y, z, 0.01);
-    Vector3d grad_B(dB[0], B[1], B[2]);
+    Vector3d grad_B(dB[0], dB[1], dB[2]);
     Vector3d curv_B(dB[3], dB[4], dB[5]);
     Vector3d unit_B(B[0] / Bt, B[1] / Bt, B[2] / Bt);
 
@@ -42,7 +43,17 @@ vector<double> dydt(const vector<double> arr_in){
     Vector3d v_para = p_para * pow(c,2) / (gamm * E0) * unit_B; //parallel velocity in RE/s
     Vector3d v_total = vd_ExB + vd_grad + vd_curv + v_para;
 
-    Vector3d dpdt;
+    double dp_dt = - mu / gamm * grad_B.dot(unit_B) +
+                  q*E.dot(unit_B)*6.371e-3 +
+                  gamm*E0/pow(c,2)*v_total.dot(deb_dt(t, x, y, z, v_total, 0.01));
+    double pB_pt = pBpt(t, x, y, z, 0.01);
+
+    arr_out[0] = dt;
+    arr_out[1] = v_total[0];
+    arr_out[2] = v_total[1];
+    arr_out[3] = v_total[2];
+    arr_out[4] = dp_dt;
+
     return arr_out;
 
 }
