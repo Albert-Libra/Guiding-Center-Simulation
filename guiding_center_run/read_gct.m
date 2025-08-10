@@ -1,19 +1,19 @@
 function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
-    % 读取 result.gct 文件
+    % Read result.gct file
     %filename = 'D:\\Albert\\artificial_radiation_belt_guiding_center_simulation\\guiding_center_solver\\build\\result.gct';
     fid = fopen(filename, 'rb');
     if fid < 0
         error('Failed to open file %s', filename);
     end
     
-    % 读取写入次数
-    count = fread(fid, 1, 'int32'); % long 在大多数平台为8字节，若为4字节请改为'int32'
+    % Read the number of records
+    count = fread(fid, 1, 'int32'); % 'long' is 8 bytes on some platforms, use 'int32' if 4 bytes
     if isempty(count)
         error('File is empty or has an incorrect format');
     end
     
     disp(['Loading: ',filename])
-    % 读取所有数据
+    % Read all data
     data = fread(fid, [5, count], 'double')';
     fclose(fid);
 
@@ -23,7 +23,7 @@ function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
         data(count,5) = 0;
     end
     
-    % 分别赋值给对应的数组
+    % Assign to corresponding arrays
     t_val      = data(:,1);
     x_val      = data(:,2);
     y_val      = data(:,3);

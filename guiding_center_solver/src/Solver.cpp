@@ -80,17 +80,17 @@ VectorXd dydt(const VectorXd arr_in){
 int test(){
 
     //simulation settings
-    dt = 0.00005;
-    dt = 0.005;
+    dt = 0.001;
+    // dt = 0.05;
     E0 = 0.511; // 0.511 MeV, rest energy of electron
     q = -1; // electron charge in e
 
     double t_ini = 1577836800; //epoch time in seconds
-    double t_interval = 60; //time interval in seconds
+    double t_interval = 300; //time interval in seconds
     double write_interval = 0.01; // 每多少秒写入一次，可根据需要调整
-    double xgsm = -4.0, ygsm = 0.0, zgsm = 0; //[RE]
+    double xgsm = 0.0, ygsm = -1.4, zgsm = 0; //[RE]
     double Ek = 1.8;//[MeV]
-    double pa = 90.0; // pitch angle in degrees
+    double pa = 40.0; // pitch angle in degrees
 
     // pre-parameter calculations
     double t_end = t_ini + t_interval;
@@ -99,10 +99,6 @@ int test(){
     double p_para = p * cos(pa * M_PI / 180.0);
     Vector3d B = Bvec(t_ini, xgsm, ygsm, zgsm);
     mu = adiabatic_1st(p,pa,E0,B.norm());
-
-    // VectorXd Barr = B_grad_curv(t_ini, xgsm, ygsm, zgsm, r_step);
-    // cout << "B_grad_curv: [" << Barr[0] << ", " << Barr[1] << ", " << Barr[2] 
-    //      << ", " << Barr[3] << ", " << Barr[4] << ", " << Barr[5] << "]" << endl;
     
     // 获取当前可执行文件的路径，并在同目录下输出 result.gct
     char exePath[1024];
@@ -119,7 +115,7 @@ int test(){
 #endif
 
     int write_step = static_cast<int>(write_interval / dt); // 每多少步写入一次，可根据需要调整
-    long write_count = num_steps / write_step + 1; // 计算写入次数
+    long write_count = num_steps / write_step +1; // 计算写入次数
     VectorXd Y(5);
     Y << t_ini, xgsm, ygsm, zgsm, p_para; // 初始化 Y 向量
 
@@ -134,7 +130,9 @@ int test(){
     // 写入第一组数据
     outfile.write(reinterpret_cast<const char*>(Y.data()), Y.size() * sizeof(double));
 
-    for (long i = 1; i < num_steps; ++i) {
+    long actual_write_count = 1; // 已经写入第一组数据
+
+    for (long i = 1; i <= num_steps; ++i) {
         // Runge-Kutta 4th order integration
         VectorXd k1 = dydt(Y);
         VectorXd k2 = dydt(Y + 0.5 * dt * k1);
@@ -144,6 +142,7 @@ int test(){
 
         if (i % write_step == 0) {
             outfile.write(reinterpret_cast<const char*>(Y.data()), Y.size() * sizeof(double));
+            ++actual_write_count;
         }
         // 每增加1%输出一次进度
         static int last_percent = -1;
@@ -158,6 +157,13 @@ int test(){
             cout << "\nParticle has reached the atmosphere (r < 1 RE). Stopping simulation." << endl;
             break;
         }
+    }
+
+    // 如果实际写入次数小于预计次数，则回到文件开头修改写入次数
+    if (actual_write_count < write_count) {
+        outfile.seekp(0, ios::beg);
+        outfile.write(reinterpret_cast<const char*>(&actual_write_count), sizeof(actual_write_count));
+        outfile.flush();
     }
     cout << "\nOutput file saved to: " << outFilePath << endl;
 
