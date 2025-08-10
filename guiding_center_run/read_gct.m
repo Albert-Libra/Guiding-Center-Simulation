@@ -3,13 +3,13 @@ function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
     %filename = 'D:\\Albert\\artificial_radiation_belt_guiding_center_simulation\\guiding_center_solver\\build\\result.gct';
     fid = fopen(filename, 'rb');
     if fid < 0
-        error('无法打开文件 %s', filename);
+        error('Failed to open file %s', filename);
     end
     
     % 读取写入次数
     count = fread(fid, 1, 'int32'); % long 在大多数平台为8字节，若为4字节请改为'int32'
     if isempty(count)
-        error('文件内容为空或格式错误');
+        error('File is empty or has an incorrect format');
     end
     
     disp(['Loading: ',filename])
@@ -18,8 +18,8 @@ function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
     fclose(fid);
 
     if size(data,1) ~= count
-        warning('实际读取的数据行数与写入次数不符，可能文件未完整写入。');
-        % 补齐数据长度，防止后续索引越界
+        warning('The actual number of data rows (%d) does not match the expected count (%d). The file may not have been completely written.', size(data,1), count);
+        % Pad the data to the expected length to avoid indexing errors
         data(count,5) = 0;
     end
     

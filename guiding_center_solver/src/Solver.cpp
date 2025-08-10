@@ -13,7 +13,7 @@ using namespace Eigen;
 
 double E0, mu, q; //rest energy[MeV], 1st adiabatic invariant[MeV/nT], charge[e]
 double dt;
-double t_step = 0.0005,r_step=0.0005;
+double t_step = 0.0001,r_step=0.001;
 
 const double c = 47.055; // Speed of light in RE/s
 
@@ -80,14 +80,15 @@ VectorXd dydt(const VectorXd arr_in){
 int test(){
 
     //simulation settings
-    dt = 0.01;
+    dt = 0.00005;
+    dt = 0.005;
     E0 = 0.511; // 0.511 MeV, rest energy of electron
     q = -1; // electron charge in e
 
     double t_ini = 1577836800; //epoch time in seconds
-    double t_interval = 600; //time interval in seconds
+    double t_interval = 60; //time interval in seconds
     double write_interval = 0.01; // 每多少秒写入一次，可根据需要调整
-    double xgsm = 4.0, ygsm = 0.0, zgsm = 0; //[RE]
+    double xgsm = -4.0, ygsm = 0.0, zgsm = 0; //[RE]
     double Ek = 1.8;//[MeV]
     double pa = 90.0; // pitch angle in degrees
 
@@ -134,8 +135,13 @@ int test(){
     outfile.write(reinterpret_cast<const char*>(Y.data()), Y.size() * sizeof(double));
 
     for (long i = 1; i < num_steps; ++i) {
-        VectorXd diff = dydt(Y);
-        Y += diff * dt;
+        // Runge-Kutta 4th order integration
+        VectorXd k1 = dydt(Y);
+        VectorXd k2 = dydt(Y + 0.5 * dt * k1);
+        VectorXd k3 = dydt(Y + 0.5 * dt * k2);
+        VectorXd k4 = dydt(Y + dt * k3);
+        Y += (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4);
+
         if (i % write_step == 0) {
             outfile.write(reinterpret_cast<const char*>(Y.data()), Y.size() * sizeof(double));
         }
