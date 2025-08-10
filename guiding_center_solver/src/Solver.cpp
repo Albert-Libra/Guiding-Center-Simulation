@@ -38,7 +38,8 @@ VectorXd dydt(const VectorXd arr_in)
     double y = arr_in[2];
     double z = arr_in[3];
     double p_para = arr_in[4];
-
+    
+    // Calculate the magnetic field B, electric field E, and their derivatives
     Vector3d B = Bvec(t, x, y, z);
     double Bt = sqrt(B[0] * B[0] + B[1] * B[1] + B[2] * B[2]);
     Vector3d E = Evec(t, x, y, z);
@@ -48,6 +49,7 @@ VectorXd dydt(const VectorXd arr_in)
     Vector3d curv_B(dB[3], dB[4], dB[5]);
     Vector3d unit_B(B[0] / Bt, B[1] / Bt, B[2] / Bt);
 
+    // Calculate the drift velocities
     double gamm = sqrt(1. + pow(p_para * c, 2) / pow(E0, 2) + 2. * mu * Bt / E0);
     Vector3d vd_ExB = E.cross(B) / Bt / Bt * 0.15696123;                                                 // ExB drift velocity in RE/s
     Vector3d vd_grad = mu * B.cross(grad_B) / (gamm * q * pow(Bt, 2)) * 24.6368279;                      // gradient drift velocity in RE/s
@@ -55,6 +57,7 @@ VectorXd dydt(const VectorXd arr_in)
     Vector3d v_para = p_para * pow(c, 2) / (gamm * E0) * unit_B;                                         // parallel velocity in RE/s
     Vector3d v_total = vd_ExB + vd_grad + vd_curv + v_para;
 
+    // Calculate the changing rate of parallel momentum
     double dp_dt_1 = -mu / gamm * grad_B.dot(unit_B);
     double dp_dt_2 = q * E.dot(unit_B) * 6.371e-3;
     double dp_dt_3 = gamm * E0 / pow(c, 2) * v_total.dot(deb_dt(t, x, y, z, v_total, r_step));
@@ -89,15 +92,11 @@ int singular_particle(string para_file)
     // Check if log directory exists, if not, create it
     #ifdef _WIN32
         string logDir = exeDir + "log\\";
-        if (_access(logDir.c_str(), 0) != 0) {
-            _mkdir(logDir.c_str());
-        }
+        if (_access(logDir.c_str(), 0) != 0) {_mkdir(logDir.c_str());}
     #else
         string logDir = exeDir + "log/";
         struct stat st_log = {0};
-        if (stat(logDir.c_str(), &st_log) == -1) {
-            mkdir(logDir.c_str(), 0755);
-        }
+        if (stat(logDir.c_str(), &st_log) == -1) {mkdir(logDir.c_str(), 0755);}
     #endif
 
     // Create a log file in exeDir\log with the same name as para_file but .log extension
@@ -113,11 +112,11 @@ int singular_particle(string para_file)
     }
     logFile << "Log file created for parameter file: " << para_file << endl;
     
+    // Read parameters from para_file
     double t_ini, t_interval, write_interval;
     double xgsm, ygsm, zgsm, Ek, pa;
     double atmosphere_altitude;
 
-    // Read parameters from para_file
     ifstream para_in(para_file);
     if (!para_in) {
         cerr << "Failed to open parameter file: " << para_file << endl;
@@ -166,16 +165,13 @@ int singular_particle(string para_file)
     // Check if output directory exists, if not, create it
     #ifdef _WIN32
         string outputDir = exeDir + "output\\";
-        if (_access(outputDir.c_str(), 0) != 0) {
-            _mkdir(outputDir.c_str());
-        }
+        if (_access(outputDir.c_str(), 0) != 0) _mkdir(outputDir.c_str());
     #else
         string outputDir = exeDir + "output/";
         struct stat st = {0};
-        if (stat(outputDir.c_str(), &st) == -1) {
-            mkdir(outputDir.c_str(), 0755);
-        }
+        if (stat(outputDir.c_str(), &st) == -1) mkdir(outputDir.c_str(), 0755);
     #endif
+
     // pre-parameter calculations
     double t_end = t_ini + t_interval;
     long num_steps = static_cast<long>((t_end - t_ini) / dt);
@@ -186,11 +182,10 @@ int singular_particle(string para_file)
 
     int write_step = static_cast<int>(write_interval / dt); // Write to file every N steps, can be adjusted as needed
     long write_count = num_steps / write_step + 1;          // Calculate the number of writes
-    VectorXd Y(5);
-    Y << t_ini, xgsm, ygsm, zgsm, p_para; // Initialize Y vector
-
+    
     // Write the number of writes to the beginning of the file
-    static ofstream outfile(outFilePath, ios::binary | ios::trunc);
+    ofstream outfile(outFilePath, ios::binary | ios::trunc);
+    // static ofstream outfile(outFilePath, ios::binary | ios::trunc);
     if (!outfile)
     {
         cerr << "Failed to open output file: " + outFilePath << endl;
@@ -200,6 +195,8 @@ int singular_particle(string para_file)
     }
     outfile.write(reinterpret_cast<const char *>(&write_count), sizeof(write_count));
 
+    VectorXd Y(5);
+    Y << t_ini, xgsm, ygsm, zgsm, p_para; // Initialize Y vector
     // Write the first set of data
     outfile.write(reinterpret_cast<const char *>(Y.data()), Y.size() * sizeof(double));
 
@@ -254,6 +251,7 @@ int singular_particle(string para_file)
         outfile.write(reinterpret_cast<const char *>(&actual_write_count), sizeof(actual_write_count));
         outfile.flush();
     }
+    outfile.close();
     cout << "\nOutput file saved to: " << outFilePath << endl;
     logFile << "Output file saved to: " << outFilePath << endl;
     logFile.close();
@@ -269,13 +267,11 @@ int main()
     exeDir = string(exePath);
     exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
     exeDir += "\\";
-    // string outFilePath = exeDir + "result.gct";
 #else
     ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
     string exeDir = string(exePath, (count > 0) ? count : 0);
     exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
     exeDir += "/";
-    // string outFilePath = exeDir + "result.gct";
 #endif
     
     // Read all .para files in exeDir
