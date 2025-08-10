@@ -43,20 +43,20 @@ function particle_initialize(input_path)
 
     fid = fopen(filepath, 'w');
     
-    fprintf(fid, '%.10g; %% time step [s], dt\n', dt);
-    fprintf(fid, '%.10g; %% rest energy of the particle [MeV], E0\n', E0);
-    fprintf(fid, '%.10g; %% charge of the particle [e], q\n', q);
-    fprintf(fid, '%.10g; %% initial time [epoch time in seconds], t_ini\n', t_ini);
-    fprintf(fid, '%.10g; %% time interval [s], t_interval\n', t_interval);
-    fprintf(fid, '%.10g; %% write interval [s], write_interval\n', write_interval);
-    fprintf(fid, '%.10g; %% initial GSM X position [RE], xgsm\n', xgsm);
-    fprintf(fid, '%.10g; %% initial GSM Y position [RE], ygsm\n', ygsm);
-    fprintf(fid, '%.10g; %% initial GSM Z position [RE], zgsm\n', zgsm);
-    fprintf(fid, '%.10g; %% initial kinetic energy of the particle [MeV], Ek\n', Ek);
-    fprintf(fid, '%.10g; %% initial pitch angle [deg], pa\n', pa);
-    fprintf(fid, '%.10g; %% atmosphere altitude [km], atmosphere_altitude\n', atmosphere_altitude);
-    fprintf(fid, '%.10g; %% time step for calculating derivatives [s], t_step\n', t_step);
-    fprintf(fid, '%.10g; %% spatial step for calculating derivatives [RE], r_step\n', r_step);
+    fprintf(fid, '%-20.10g; %% time step [s], dt\n',                                  dt);
+    fprintf(fid, '%-20.10g; %% rest energy of the particle [MeV], E0\n',              E0);
+    fprintf(fid, '%-20.10g; %% charge of the particle [e], q\n',                      q);
+    fprintf(fid, '%-20.10g; %% initial time [epoch time in seconds], t_ini\n',        t_ini);
+    fprintf(fid, '%-20.10g; %% time interval [s], t_interval\n',                      t_interval);
+    fprintf(fid, '%-20.10g; %% write interval [s], write_interval\n',                 write_interval);
+    fprintf(fid, '%-20.10g; %% initial GSM X position [RE], xgsm\n',                  xgsm);
+    fprintf(fid, '%-20.10g; %% initial GSM Y position [RE], ygsm\n',                  ygsm);
+    fprintf(fid, '%-20.10g; %% initial GSM Z position [RE], zgsm\n',                  zgsm);
+    fprintf(fid, '%-20.10g; %% initial kinetic energy of the particle [MeV], Ek\n',   Ek);
+    fprintf(fid, '%-20.10g; %% initial pitch angle [deg], pa\n',                      pa);
+    fprintf(fid, '%-20.10g; %% atmosphere altitude [km], atmosphere_altitude\n',      atmosphere_altitude);
+    fprintf(fid, '%-20.10g; %% time step for calculating derivatives [s], t_step\n',  t_step);
+    fprintf(fid, '%-20.10g; %% spatial step for calculating derivatives [RE], r_step\n', r_step);
     fclose(fid);
     disp(['Parameter file created: ', filepath]);
 end
