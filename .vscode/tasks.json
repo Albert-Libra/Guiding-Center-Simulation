@@ -11,7 +11,8 @@
                 "-I${fileDirname}\\..\\include",
                 "-I${fileDirname}\\..\\include\\eigen-3.4.0",
                 "-o",
-                "${fileDirname}\\..\\build\\${fileBasenameNoExtension}.exe"
+                // "${fileDirname}\\..\\build\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\..\\..\\Lab\\Example\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
                 "cwd": "${fileDirname}"
