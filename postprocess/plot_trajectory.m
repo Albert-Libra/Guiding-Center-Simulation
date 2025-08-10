@@ -1,6 +1,6 @@
 function plot_trajectory(filename)
     
-    [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename);
+    [~, t_val, x_val, y_val, z_val, ~] = read_gct(filename);
     
     figure;
     hold on;
