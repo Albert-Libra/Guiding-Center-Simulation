@@ -3,6 +3,7 @@ filename = 'D:\Albert\artificial_radiation_belt_guiding_center_simulation\guidin
 
 figure;
 hold on;
+set(gca, 'BoxStyle', 'full');
 cmap = jet(256); % Specify colormap
 n = length(t_val)-1;
 last_percent = -1;
@@ -34,16 +35,32 @@ ylabel('Y (RE)');
 zlabel('Z (RE)');
 title('Guiding Center Trajectory');
 
-% Draw a sphere: x>0 is white, x<0 is black
+% Draw a sphere: x>0 is white, x<0 is dark gray
 [xs, ys, zs] = sphere(100);
 hold on;
 faceColor = zeros(size(xs,1), size(xs,2), 3);
-faceColor(:,:,1) = xs > 0; % R component, x>0 is 1
-faceColor(:,:,2) = xs > 0; % G component, x>0 is 1
-faceColor(:,:,3) = xs > 0; % B component, x>0 is 1
-h = surf(xs, ys, zs, faceColor, 'FaceAlpha', 1, 'EdgeColor', 'none');
+% x>0: white (1,1,1), x<0: dark gray (0.2,0.2,0.2)
+mask = xs > 0;
+faceColor(:,:,1) = mask + 0.2 * (~mask);
+faceColor(:,:,2) = mask + 0.2 * (~mask);
+faceColor(:,:,3) = mask + 0.2 * (~mask);
+h = surf(xs, ys, zs, faceColor, 'FaceAlpha', 0.9, 'EdgeColor', 'none');
+
+% Draw coastlines
+load coastlines
+xcst = cosd(coastlat).*cosd(coastlon);
+ycst = cosd(coastlat).*sind(coastlon);
+zcst = sind(coastlat);
+plot3(xcst, ycst, zcst, 'Color', [0.65, 0.33, 0.1], 'LineWidth', 1.5);
+
 light('Position',[1 0 1],'Style','infinite');
 lighting gouraud;
 set(h, 'FaceLighting', 'gouraud', 'AmbientStrength', 0.3, ...
     'DiffuseStrength', 0.6, 'SpecularStrength', 0.9, 'SpecularExponent', 25);
+
+box on
+set(gca,"BoxStyle","full");
+view([120 30]);
+ 
 hold off;
+

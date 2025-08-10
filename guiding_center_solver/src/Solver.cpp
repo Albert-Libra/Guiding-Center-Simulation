@@ -3,6 +3,7 @@
 #include <cmath>
 #include <fstream>
 #include <Eigen/Dense>
+#include <chrono>
 
 #include "field_calculator.h"
 #include "particle_calculator.h"
@@ -89,7 +90,7 @@ int test(){
     double t_interval = 300; //time interval in seconds
     double write_interval = 0.01; // 每多少秒写入一次，可根据需要调整
     double xgsm = 0.0, ygsm = -1.4, zgsm = 0; //[RE]
-    double Ek = 1.8;//[MeV]
+    double Ek = 1.0;//[MeV]
     double pa = 40.0; // pitch angle in degrees
 
     // pre-parameter calculations
@@ -132,6 +133,9 @@ int test(){
 
     long actual_write_count = 1; // 已经写入第一组数据
 
+    // 记录开始时间
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     for (long i = 1; i <= num_steps; ++i) {
         // Runge-Kutta 4th order integration
         VectorXd k1 = dydt(Y);
@@ -158,6 +162,11 @@ int test(){
             break;
         }
     }
+
+    // 记录结束时间并输出用时
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end_time - start_time;
+    cout << "\nTotal solving time: " << elapsed.count() << " seconds." << endl;
 
     // 如果实际写入次数小于预计次数，则回到文件开头修改写入次数
     if (actual_write_count < write_count) {
