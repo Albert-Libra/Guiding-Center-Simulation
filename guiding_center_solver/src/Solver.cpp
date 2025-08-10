@@ -61,6 +61,7 @@ VectorXd dydt(const VectorXd arr_in){
     arr_out[3] = v_total[2];
     arr_out[4] = dp_dt;
 
+    // debug information
     if (false){
         cout << "\nPosition: [" << arr_in[1] << ", " << arr_in[2] << ", " << arr_in[3] << "]" << endl;
         cout << "vd_ExB: [" << vd_ExB[0] << ", " << vd_ExB[1] << ", " << vd_ExB[2] << "]" << endl;
