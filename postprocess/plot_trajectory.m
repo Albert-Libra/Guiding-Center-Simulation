@@ -48,7 +48,7 @@ function plot_trajectory(filename)
     h = surf(xs, ys, zs, faceColor, 'FaceAlpha', 0.9, 'EdgeColor', 'none');
     
     % Draw coastlines
-    load coastlines
+    load coastlines %#ok<LOAD>
     xcst = cosd(coastlat).*cosd(coastlon);
     ycst = cosd(coastlat).*sind(coastlon);
     zcst = sind(coastlat);
