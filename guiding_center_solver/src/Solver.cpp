@@ -86,43 +86,43 @@ VectorXd dydt(const VectorXd arr_in)
 
 int singular_particle(string para_file)
 {
+    // Check if log directory exists, if not, create it
+    #ifdef _WIN32
+        string logDir = exeDir + "log\\";
+        if (_access(logDir.c_str(), 0) != 0) {
+            _mkdir(logDir.c_str());
+        }
+    #else
+        string logDir = exeDir + "log/";
+        struct stat st_log = {0};
+        if (stat(logDir.c_str(), &st_log) == -1) {
+            mkdir(logDir.c_str(), 0755);
+        }
+    #endif
 
-    // // simulation settings
-    // dt = 0.001;
-    // E0 = 0.511; // 0.511 MeV, rest energy of electron
-    // q = -1;     // electron charge in e
-
-    // double t_ini = 1577836800;                // epoch time in seconds
-    // double t_interval = 300;                  // time interval in seconds
-    // double write_interval = 0.01;             // Write to file every N seconds, can be adjusted as needed
-    // double xgsm = 0.0, ygsm = -1.4, zgsm = 0; // [RE]
-    // double Ek = 1.0;                          // [MeV]
-    // double pa = 40.0;                         // pitch angle in degrees
-    // double atmosphere_altitude;
+    // Create a log file in exeDir\log with the same name as para_file but .log extension
+    size_t last_slash = para_file.find_last_of("\\/");
+    string para_filename = (last_slash == string::npos) ? para_file : para_file.substr(last_slash + 1);
+    size_t dot_pos = para_filename.find_last_of('.');
+    string log_filename = (dot_pos == string::npos) ? para_filename + ".log" : para_filename.substr(0, dot_pos) + ".log";
+    string logFilePath = logDir + log_filename;
+    ofstream logFile(logFilePath, ios::out | ios::trunc);
+    if (!logFile) {
+        cerr << "Failed to create log file: " << logFilePath << endl;
+        exit(1);
+    }
+    logFile << "Log file created for parameter file: " << para_file << endl;
+    
     double t_ini, t_interval, write_interval;
     double xgsm, ygsm, zgsm, Ek, pa;
     double atmosphere_altitude;
-
-//     // Get the current executable path
-//     char exePath[1024];
-// #ifdef _WIN32
-//     GetModuleFileNameA(NULL, exePath, sizeof(exePath));
-//     string exeDir = string(exePath);
-//     exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-//     exeDir += "\\";
-//     // string outFilePath = exeDir + "result.gct";
-// #else
-//     ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
-//     string exeDir = string(exePath, (count > 0) ? count : 0);
-//     exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-//     exeDir += "/";
-//     // string outFilePath = exeDir + "result.gct";
-// #endif
 
     // Read parameters from para_file
     ifstream para_in(para_file);
     if (!para_in) {
         cerr << "Failed to open parameter file: " << para_file << endl;
+        logFile << "Failed to open parameter file: " << para_file << endl;
+        logFile.close();
         exit(1);
     }
     string line;
@@ -194,6 +194,8 @@ int singular_particle(string para_file)
     if (!outfile)
     {
         cerr << "Failed to open output file: " + outFilePath << endl;
+        logFile << "Failed to open output file: " + outFilePath << endl;
+        logFile.close();
         exit(1);
     }
     outfile.write(reinterpret_cast<const char *>(&write_count), sizeof(write_count));
@@ -228,11 +230,13 @@ int singular_particle(string para_file)
             // Remove previous line
             cout << "\r" << string(50, ' ') << "\r";
             cout << "Progress: " << percent << "% (" << i << " / " << num_steps << ")" << flush;
+            logFile << "Progress: " << percent << "% (" << i << " / " << num_steps << ")" << endl;
             last_percent = percent;
         }
         if (sqrt(Y[1] * Y[1] + Y[2] * Y[2] + Y[3] * Y[3]) < 1.0 + atmosphere_altitude / 6371.0)
         {
             cout << "\nParticle has reached the atmosphere (r < 1 RE). Stopping simulation." << endl;
+            logFile << "Particle has reached the atmosphere (r < 1 RE). Stopping simulation." << endl;
             break;
         }
     }
@@ -241,6 +245,7 @@ int singular_particle(string para_file)
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
     cout << "\nTotal solving time: " << elapsed.count() << " seconds." << endl;
+    logFile << "Total solving time: " << elapsed.count() << " seconds." << endl;
 
     // If the actual number of writes is less than the expected number, go back to the file header to modify the write count
     if (actual_write_count < write_count)
@@ -250,7 +255,8 @@ int singular_particle(string para_file)
         outfile.flush();
     }
     cout << "\nOutput file saved to: " << outFilePath << endl;
-
+    logFile << "Output file saved to: " << outFilePath << endl;
+    logFile.close();
     return 0;
 }
 
@@ -303,8 +309,9 @@ int main()
         cerr << "No .para files found in " << exeDir + "input\\"<< endl;
         exit(1);
     }
-    string para_file = para_files[0];
-    singular_particle(para_file);
+    for (const auto& para_file : para_files) {
+        singular_particle(para_file);
+    }
 
     return 0;
 }

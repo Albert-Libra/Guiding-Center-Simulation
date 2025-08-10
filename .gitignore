@@ -1,3 +1,6 @@
 external/
 example/test/
 *.exe
+*.para
+*.gct
+*.log
