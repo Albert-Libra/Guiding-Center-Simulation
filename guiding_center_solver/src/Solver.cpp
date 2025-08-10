@@ -13,7 +13,7 @@ using namespace Eigen;
 
 double E0, mu, q; //rest energy[MeV], 1st adiabatic invariant[MeV/nT], charge[e]
 double dt;
-double t_step = 0.0005,r_step=0.001;
+double t_step = 0.0005,r_step=0.0005;
 
 const double c = 47.055; // Speed of light in RE/s
 
@@ -158,51 +158,51 @@ int test(){
 
 
 
-    /* 读取 result.gct 中的内容并简化存储 */
-    ifstream infile(outFilePath, ios::binary);
-    if (!infile) {
-        cerr << "Failed to open result.gct for reading." << endl;
-        exit(1);
-    }
-    // 先读取写入次数
-    long read_count = 0;
-    infile.read(reinterpret_cast<char*>(&read_count), sizeof(read_count));
-    if (!infile) {
-        cerr << "Failed to read write_count from result.gct." << endl;
-        exit(1);
-    }
-    vector<vector<double>> data;
-    double buf[5];
-    for (long i = 0; i < read_count; ++i) {
-        infile.read(reinterpret_cast<char*>(buf), sizeof(buf));
-        if (!infile) {
-            cerr << "Failed to read data at step " << i << endl;
-            break;
-        }
-        data.emplace_back(buf, buf + 5);
-        if (i % 1000 == 0 || i == read_count - 1) {
-            cout << "Read progress: " << i + 1 << " / " << read_count << endl;
-        }
-    }
-    infile.close();
+    // /* 读取 result.gct 中的内容并简化存储 */
+    // ifstream infile(outFilePath, ios::binary);
+    // if (!infile) {
+    //     cerr << "Failed to open result.gct for reading." << endl;
+    //     exit(1);
+    // }
+    // // 先读取写入次数
+    // long read_count = 0;
+    // infile.read(reinterpret_cast<char*>(&read_count), sizeof(read_count));
+    // if (!infile) {
+    //     cerr << "Failed to read write_count from result.gct." << endl;
+    //     exit(1);
+    // }
+    // vector<vector<double>> data;
+    // double buf[5];
+    // for (long i = 0; i < read_count; ++i) {
+    //     infile.read(reinterpret_cast<char*>(buf), sizeof(buf));
+    //     if (!infile) {
+    //         cerr << "Failed to read data at step " << i << endl;
+    //         break;
+    //     }
+    //     data.emplace_back(buf, buf + 5);
+    //     if (i % 1000 == 0 || i == read_count - 1) {
+    //         cout << "Read progress: " << i + 1 << " / " << read_count << endl;
+    //     }
+    // }
+    // infile.close();
 
-    // 拆分数据到各自变量
-    size_t n = data.size();
-    vector<double> t_val(n), x_val(n), y_val(n), z_val(n), p_para_val(n);
-    for (size_t i = 0; i < n; ++i) {
-        t_val[i] = data[i][0];
-        x_val[i] = data[i][1];
-        y_val[i] = data[i][2];
-        z_val[i] = data[i][3];
-        p_para_val[i] = data[i][4];
-    }
+    // // 拆分数据到各自变量
+    // size_t n = data.size();
+    // vector<double> t_val(n), x_val(n), y_val(n), z_val(n), p_para_val(n);
+    // for (size_t i = 0; i < n; ++i) {
+    //     t_val[i] = data[i][0];
+    //     x_val[i] = data[i][1];
+    //     y_val[i] = data[i][2];
+    //     z_val[i] = data[i][3];
+    //     p_para_val[i] = data[i][4];
+    // }
 
-    //输出读取的数据的前5位
-    for (long i = 0; i < 10; ++i) {
-        cout << "Step " << i << ": t=" << t_val[i] << ", x=" << x_val[i]
-             << ", y=" << y_val[i] << ", z=" << z_val[i]
-             << ", p_para=" << p_para_val[i] << endl;
-    }
+    // //输出读取的数据的前5位
+    // for (long i = 0; i < 10; ++i) {
+    //     cout << "Step " << i << ": t=" << t_val[i] << ", x=" << x_val[i]
+    //          << ", y=" << y_val[i] << ", z=" << z_val[i]
+    //          << ", p_para=" << p_para_val[i] << endl;
+    // }
     return 0;
 }
 

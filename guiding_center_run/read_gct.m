@@ -16,6 +16,12 @@ function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
     % 读取所有数据
     data = fread(fid, [5, count], 'double')';
     fclose(fid);
+
+    if size(data,1) ~= count
+        warning('实际读取的数据行数与写入次数不符，可能文件未完整写入。');
+        % 补齐数据长度，防止后续索引越界
+        data(count,5) = 0;
+    end
     
     % 分别赋值给对应的数组
     t_val      = data(:,1);
