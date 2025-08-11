@@ -4,11 +4,10 @@
 
 static HMODULE lib_geopack = nullptr;
 
-// 修正BUG：LoadLibraryW 需要绝对路径或与exe一致的相对路径，且参数类型应为 LPCWSTR
-// 建议用 ANSI 路径和 LoadLibraryA，避免路径/编码问题
+// Define the path to the Geopack DLL
 #define GEOPACK_DLL_PATH "../../external/Geopack-2008/Geopack-2008_dp.dll"
 
-// 修正BUG：recalc参数顺序应与Fortran一致，且类型应为int*, double*, double*, double*
+// Recalc
 extern "C" __declspec(dllexport)
 void recalc(int* year, int* day, int* hour, int* min, double* sec,
             double* vgsex, double* vgsey, double* vgsez)
@@ -33,7 +32,7 @@ void recalc(int* year, int* day, int* hour, int* min, double* sec,
     recalc_08_(year, day, hour, min, sec, vgsex, vgsey, vgsez);
 }
 
-// 修正BUG：igrf_gsm参数顺序应与Fortran一致
+// IGRF model
 extern "C" __declspec(dllexport)
 void igrf_gsm(double* x, double* y, double* z, double* bx, double* by, double* bz)
 {
@@ -57,6 +56,7 @@ void igrf_gsm(double* x, double* y, double* z, double* bx, double* by, double* b
     igrf_gsw_08_(x, y, z, bx, by, bz);
 }
 
+// GEO <-> GSM conversion
 extern "C" __declspec(dllexport)
 void geogsm(double* xgeo, double* ygeo, double* zgeo, double* xgsm, double* ygsm, double* zgsm, int* J)
 {
