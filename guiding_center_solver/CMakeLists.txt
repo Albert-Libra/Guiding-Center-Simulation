@@ -20,8 +20,9 @@ add_executable(Solver ${SOLVER_SRC})
 # Diagnosor主程序（只编译Diagnosor.cpp和需要的其他文件）
 set(DIAGNOSOR_SRC
     ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp
-    # 如Diagnosor.cpp依赖其他cpp，也可以加进来
-    # ${CMAKE_SOURCE_DIR}/src/other_needed.cpp
+    ${CMAKE_SOURCE_DIR}/src/field_calculator.cpp
+    ${CMAKE_SOURCE_DIR}/src/particle_calculator.cpp
+    ${CMAKE_SOURCE_DIR}/src/geopack_caller.cpp
 )
 add_executable(Diagnosor ${DIAGNOSOR_SRC})
 
