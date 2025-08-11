@@ -54,9 +54,9 @@ function plot_trajectory(filename)
                     'D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_matlab_caller.h');
     end
     
-    year  = libpointer('int32Ptr', int32(2024));
-    day   = libpointer('int32Ptr', int32(200));
-    hour  = libpointer('int32Ptr', int32(12));
+    year  = libpointer('int32Ptr', int32(2020));
+    day   = libpointer('int32Ptr', int32(1));
+    hour  = libpointer('int32Ptr', int32(0));
     minu  = libpointer('int32Ptr', int32(0));
     sec   = libpointer('doublePtr', 0);
     vgsex = libpointer('doublePtr', -400);
@@ -64,35 +64,41 @@ function plot_trajectory(filename)
     vgsez = libpointer('doublePtr', 0);
     
     calllib('geopack_caller', 'recalc', year, day, hour, minu, sec, vgsex, vgsey, vgsez);
-    x = libpointer('doublePtr', 1.5);
-    y = libpointer('doublePtr', 0);
-    z = libpointer('doublePtr', 0);
-    bx = libpointer('doublePtr', 1.5);
-    by = libpointer('doublePtr', 0);
-    bz = libpointer('doublePtr', 0);
 
-    calllib('geopack_caller', 'igrf_gsm', x,y,z,bx,by,bz);
-    disp(['B field at (', num2str(x.Value), ', ', num2str(y.Value), ', ', num2str(z.Value), ') is (', ...
-        num2str(bx.Value), ', ', num2str(by.Value), ', ', num2str(bz.Value), ') nT']);
-
-    
-
-%     loadlibrary('D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_caller.dll','D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_matlab_caller.h');
-%     
-%     calllib('geopack_caller', 'init_geopack');
     xcst = cosd(coastlat).*cosd(coastlon);
     ycst = cosd(coastlat).*sind(coastlon);
     zcst = sind(coastlat);
-    plot3(xcst, ycst, zcst, 'Color', [0.65, 0.33, 0.1], 'LineWidth', 1.5);
+    xgsm_arr = ones(size(xcst));
+    ygsm_arr = ones(size(ycst));
+    zgsm_arr = ones(size(zcst));
+    for i = 1:length(xcst)
+        xgeo = libpointer('doublePtr', xcst(i));
+        ygeo = libpointer('doublePtr', ycst(i));
+        zgeo = libpointer('doublePtr', zcst(i));
+        xgsm = libpointer('doublePtr', 0);
+        ygsm = libpointer('doublePtr', 0);
+        zgsm = libpointer('doublePtr', 0);
+        calllib('geopack_caller', 'geogsm', xgeo, ygeo, zgeo, xgsm, ygsm, zgsm,libpointer('int32Ptr', int32(1)));
+        xgsm_arr(i) = xgsm.Value;
+        ygsm_arr(i) = ygsm.Value;
+        zgsm_arr(i) = zgsm.Value;
+    end
+    
+    unloadlibrary('geopack_caller')
+
+
+    plot3(xgsm_arr, ygsm_arr, zgsm_arr, 'Color', [0.65, 0.33, 0.1], 'LineWidth', 1.5);
     
     light('Position',[1 0 1],'Style','infinite');
     lighting gouraud;
-    set(h, 'FaceLighting', 'gouraud', 'AmbientStrength', 0.3, ...
-        'DiffuseStrength', 0.6, 'SpecularStrength', 0.9, 'SpecularExponent', 25);
-    
+    set(h, 'FaceLighting', 'gouraud', ...
+        'AmbientStrength', 0.3, ...         % Lower ambient light
+        'DiffuseStrength', 0.6, ...         % Lower diffuse reflection
+        'SpecularStrength', 1.0, ...        % Stronger specular highlight
+        'SpecularExponent', 30);           % Sharper specular highlight (higher value = harder)
     box on
     set(gca,"BoxStyle","full");
-    view([120 30]);
+    view([230 30]);
      
     hold off;
 

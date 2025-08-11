@@ -11,5 +11,5 @@ gfortran -shared -fPIC -o igrf13.dll igrf13.f
 ### 2. Compile C++ Dynamic Link Library of Geopack-2008 for matlab
 ```shell
 cd guiding_center_simulation\src
-g++ -shared -o ..\..\postprocess\include\geopack_caller.dll geopack_caller.cpp -I..\include\
+g++ -shared -o postprocess\include\geopack_caller.dll guiding_center_solver\src\geopack_caller.cpp -Iguiding_center_solver\include\
 ```

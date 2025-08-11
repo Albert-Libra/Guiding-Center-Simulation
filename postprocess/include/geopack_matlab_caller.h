@@ -9,6 +9,9 @@ __declspec(dllexport) void recalc(
 __declspec(dllexport) void igrf_gsm(
     double* x, double* y, double* z, double* bx, double* by, double* bz);
 
+__declspec(dllexport) void geogsm(
+    double* xgeo, double* ygeo, double* zgeo, double* xgsm, double* ygsm, double* zgsm, int* J);
+
 #ifdef __cplusplus
 }
 #endif

@@ -56,3 +56,26 @@ void igrf_gsm(double* x, double* y, double* z, double* bx, double* by, double* b
     }
     igrf_gsw_08_(x, y, z, bx, by, bz);
 }
+
+extern "C" __declspec(dllexport)
+void geogsm(double* xgeo, double* ygeo, double* zgeo, double* xgsm, double* ygsm, double* zgsm, int* J)
+{
+    typedef void (*geogsw_08_t)(double*, double*, double*, double*, double*, double*, int*);
+    static geogsw_08_t geogsw_08_ = nullptr;
+
+    if (!lib_geopack) {
+        lib_geopack = LoadLibraryA(GEOPACK_DLL_PATH);
+        if (!lib_geopack) {
+            std::cerr << "Failed to load Geopack DLL in geogsm." << std::endl;
+            return;
+        }
+    }
+    if (!geogsw_08_) {
+        geogsw_08_ = (geogsw_08_t)GetProcAddress(lib_geopack, "geogsw_08_");
+        if (!geogsw_08_) {
+            std::cerr << "Failed to get geogsw_08_ from DLL." << std::endl;
+            return;
+        }
+    }
+    geogsw_08_(xgeo, ygeo, zgeo, xgsm, ygsm, zgsm, J);
+}
