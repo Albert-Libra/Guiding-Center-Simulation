@@ -15,10 +15,10 @@ Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const dou
     time_t epoch_time = static_cast<time_t>(t);
     tm* time_info = gmtime(&epoch_time);
 
-    if (!init_geopack()) {
-        cout << "Geopack init failed." << endl;
-        return Vector3d::Zero();
-    }
+    // if (!init_geopack()) {
+    //     cout << "Geopack init failed." << endl;
+    //     return Vector3d::Zero();
+    // }
 
     int IYEAR = time_info->tm_year + 1900; // tm_year基于1900
     int IDAY = time_info->tm_yday + 1;       // tm_yday从0开始，所以加1
