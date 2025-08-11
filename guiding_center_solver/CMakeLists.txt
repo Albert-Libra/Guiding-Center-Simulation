@@ -24,3 +24,14 @@ set(DIAGNOSOR_SRC
     # ${CMAKE_SOURCE_DIR}/src/other_needed.cpp
 )
 add_executable(Diagnosor ${DIAGNOSOR_SRC})
+
+# 生成geopack_caller动态链接库，并指定输出路径为 postprocess/include
+add_library(geopack_caller SHARED src/geopack_caller.cpp)
+set_target_properties(geopack_caller PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
+)
+add_custom_command(TARGET geopack_caller POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove -f $<TARGET_LINKER_FILE:geopack_caller>
+)

@@ -15,3 +15,6 @@
 using namespace std;
 using namespace Eigen;
 
+int main(){
+    cout << "This is the Diagnosor program." << endl;
+}
