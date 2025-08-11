@@ -72,6 +72,9 @@ function plot_trajectory(filename)
     bz = libpointer('doublePtr', 0);
 
     calllib('geopack_caller', 'igrf_gsm', x,y,z,bx,by,bz);
+    disp(['B field at (', num2str(x.Value), ', ', num2str(y.Value), ', ', num2str(z.Value), ') is (', ...
+        num2str(bx.Value), ', ', num2str(by.Value), ', ', num2str(bz.Value), ') nT']);
+
     
 
 %     loadlibrary('D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_caller.dll','D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_matlab_caller.h');
