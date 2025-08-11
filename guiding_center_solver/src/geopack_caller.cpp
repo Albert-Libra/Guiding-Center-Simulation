@@ -7,6 +7,7 @@ Geopack_recalc recalc = nullptr;
 Geopack_igrf_gsm igrf_gsm = nullptr;
 static HMODULE lib_geopack = nullptr;
 
+extern "C" __declspec(dllexport)
 bool init_geopack() {
     if (lib_geopack) return true; // 已初始化
     lib_geopack = LoadLibraryW(L"../../external/Geopack-2008/Geopack-2008_dp.dll");

@@ -15,11 +15,11 @@ if ~isfile('Solver.exe')
     error('Solver.exe not found in the current directory. Copy it from guiding_center_solver\\build\\');
 end
 
-% Run Solver.exe
-status = system('Solver.exe');
-if status ~= 0
-    error('Failed to execute Solver.exe');
-end
+% % Run Solver.exe
+% status = system('Solver.exe');
+% if status ~= 0
+%     error('Failed to execute Solver.exe');
+% end
 
 % Search for .gct files in the output folder
 output_path = '.\output\';
@@ -32,4 +32,5 @@ end
 for k = 1:length(gctFiles)
     gctFilePath = fullfile(output_path, gctFiles(k).name);
     plot_trajectory(gctFilePath);
+    break
 end

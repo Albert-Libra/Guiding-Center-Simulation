@@ -49,6 +49,9 @@ function plot_trajectory(filename)
     
     % Draw coastlines
     load coastlines %#ok<LOAD>
+    loadlibrary('D:\Albert\artificial_radiation_belt_guiding_center_simulation\guiding_center_solver\src\geopack_caller.dll','D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_matlab_caller.h');
+    
+    calllib('geopack_caller', 'init_geopack');
     xcst = cosd(coastlat).*cosd(coastlon);
     ycst = cosd(coastlat).*sind(coastlon);
     zcst = sind(coastlat);

@@ -9,4 +9,5 @@ extern Geopack_recalc recalc;
 extern Geopack_igrf_gsm igrf_gsm;
 
 // 初始化函数，需在主程序开始时调用一次
+extern "C" __declspec(dllexport)
 bool init_geopack();
