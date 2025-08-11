@@ -2,7 +2,12 @@
 extern "C" {
 #endif
 
-__declspec(dllexport) bool init_geopack();
+__declspec(dllexport) void recalc(
+    int* year, int* day, int* hour, int* min, double* sec,
+    double* vgsex, double* vgsey, double* vgsez);
+
+__declspec(dllexport) void igrf_gsm(
+    double* x, double* y, double* z, double* bx, double* by, double* bz);
 
 #ifdef __cplusplus
 }

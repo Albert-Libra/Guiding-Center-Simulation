@@ -1,13 +1,10 @@
 #pragma once
 
-// 函数指针类型定义
-typedef void (__stdcall *Geopack_recalc)(int*, int*, int*, int*, double*, double*, double*, double*);
-typedef void (__stdcall *Geopack_igrf_gsm)(double*, double*, double*, double*, double*, double*);
-
-// 全局函数指针声明
-extern Geopack_recalc recalc;
-extern Geopack_igrf_gsm igrf_gsm;
-
-// 初始化函数，需在主程序开始时调用一次
+// recalc函数，功能与DLL中的recalc_08_一致
 extern "C" __declspec(dllexport)
-bool init_geopack();
+void recalc(int* year, int* day, int* hour, int* min, double* sec,
+            double* vgsex, double* vgsey, double* vgsez);
+
+// igrf_gsm函数，功能与DLL中的igrf_gsw_08_一致
+extern "C" __declspec(dllexport)
+void igrf_gsm(double* x, double* y, double* z, double* bx, double* by, double* bz);

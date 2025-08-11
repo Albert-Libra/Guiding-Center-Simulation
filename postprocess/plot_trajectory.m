@@ -49,9 +49,34 @@ function plot_trajectory(filename)
     
     % Draw coastlines
     load coastlines %#ok<LOAD>
-    loadlibrary('D:\Albert\artificial_radiation_belt_guiding_center_simulation\guiding_center_solver\src\geopack_caller.dll','D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_matlab_caller.h');
+    if ~libisloaded('geopack_caller')
+        loadlibrary('D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_caller.dll', ...
+                    'D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_matlab_caller.h');
+    end
     
-    calllib('geopack_caller', 'init_geopack');
+    year  = libpointer('int32Ptr', int32(2024));
+    day   = libpointer('int32Ptr', int32(200));
+    hour  = libpointer('int32Ptr', int32(12));
+    minu  = libpointer('int32Ptr', int32(0));
+    sec   = libpointer('doublePtr', 0);
+    vgsex = libpointer('doublePtr', -400);
+    vgsey = libpointer('doublePtr', 0);
+    vgsez = libpointer('doublePtr', 0);
+    
+    calllib('geopack_caller', 'recalc', year, day, hour, minu, sec, vgsex, vgsey, vgsez);
+    x = libpointer('doublePtr', 1.5);
+    y = libpointer('doublePtr', 0);
+    z = libpointer('doublePtr', 0);
+    bx = libpointer('doublePtr', 1.5);
+    by = libpointer('doublePtr', 0);
+    bz = libpointer('doublePtr', 0);
+
+    calllib('geopack_caller', 'igrf_gsm', x,y,z,bx,by,bz);
+    
+
+%     loadlibrary('D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_caller.dll','D:\Albert\artificial_radiation_belt_guiding_center_simulation\postprocess\include\geopack_matlab_caller.h');
+%     
+%     calllib('geopack_caller', 'init_geopack');
     xcst = cosd(coastlat).*cosd(coastlon);
     ycst = cosd(coastlat).*sind(coastlon);
     zcst = sind(coastlat);
