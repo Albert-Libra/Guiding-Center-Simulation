@@ -18,12 +18,14 @@ list(REMOVE_ITEM SOLVER_SRC ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp)
 add_executable(Solver ${SOLVER_SRC})
 
 # Diagnosor主程序（只编译Diagnosor.cpp和需要的其他文件）
-set(DIAGNOSOR_SRC
-    ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp
-    ${CMAKE_SOURCE_DIR}/src/field_calculator.cpp
-    ${CMAKE_SOURCE_DIR}/src/particle_calculator.cpp
-    ${CMAKE_SOURCE_DIR}/src/geopack_caller.cpp
-)
+# set(DIAGNOSOR_SRC
+#     ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp
+#     ${CMAKE_SOURCE_DIR}/src/field_calculator.cpp
+#     ${CMAKE_SOURCE_DIR}/src/particle_calculator.cpp
+#     ${CMAKE_SOURCE_DIR}/src/geopack_caller.cpp
+# )
+set(DIAGNOSOR_SRC ${ALL_SRC})
+list(REMOVE_ITEM DIAGNOSOR_SRC ${CMAKE_SOURCE_DIR}/src/Solver.cpp)
 add_executable(Diagnosor ${DIAGNOSOR_SRC})
 
 # 生成geopack_caller动态链接库，并指定输出路径为 postprocess/include

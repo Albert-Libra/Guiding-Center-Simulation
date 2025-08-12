@@ -11,6 +11,7 @@
 #include <libloaderapi.h>
 #include <io.h>
 #include <direct.h>
+#include <windows.h>
 
 using namespace std;
 using namespace Eigen;
@@ -18,13 +19,14 @@ using namespace Eigen;
 const double c = 47.055; // Speed of light in RE/s
 string exeDir;
 
-void diagnose_gct(string& filePath){
+int diagnose_gct(string filePath){
     
     // Read parameters from para_file
     double dt,E0,q,t_ini, t_interval, write_interval;
     double xgsm, ygsm, zgsm, Ek, pa;
     double atmosphere_altitude,t_step, r_step;
 
+    cout << "Trying to open parameter file: " << filePath << endl;
     ifstream para_in(filePath);
     if (!para_in) {
         cerr << "Failed to open parameter file: " << filePath << endl;
@@ -79,14 +81,14 @@ void diagnose_gct(string& filePath){
     ifstream infile(outFilePath, ios::binary);
     if (!infile) {
         cerr << "Failed to open file: " << filePath << endl;
-        return;
+        exit(1);
     }
     // Read the number of records
     long write_count;
     infile.read(reinterpret_cast<char*>(&write_count), sizeof(write_count));
     if (infile.gcount() != sizeof(write_count)) {
         cerr << "Failed to read write count from file: " << filePath << endl;
-        return;
+        exit(1);
     }
 
     cout << "Diagnosing file: " << outFilePath << endl;
@@ -95,7 +97,7 @@ void diagnose_gct(string& filePath){
     ofstream diag_out(diagFilePath, ios::binary | ios::trunc);
     if (!diag_out) {
         cerr << "Failed to open diagnostics file: " << diagFilePath << endl;
-        return;
+        exit(1);
     }
     diag_out.write(reinterpret_cast<const char *>(&write_count), sizeof(write_count));
     // Record start time
@@ -105,7 +107,7 @@ void diagnose_gct(string& filePath){
         infile.read(reinterpret_cast<char*>(Y.data()), Y.size() * sizeof(double));
         if (infile.gcount() != Y.size() * sizeof(double)) {
             cerr << "Failed to read record " << i << " from file: " << filePath << endl;
-            return;
+            exit(1);
         }
         // calculate B, velocity, gamma, betatron acceleration
         double t = Y[0];
@@ -147,7 +149,7 @@ void diagnose_gct(string& filePath){
         diag_out.write(reinterpret_cast<const char*>(vd_grad.data()), 3 * sizeof(double));
         diag_out.write(reinterpret_cast<const char*>(vd_curv.data()), 3 * sizeof(double));
         diag_out.write(reinterpret_cast<const char*>(v_para.data()), 3 * sizeof(double));
-        diag_out.write(reinterpret_cast<const char*>(&mu), sizeof(mu));
+        // diag_out.write(reinterpret_cast<const char*>(&mu), sizeof(mu));
         diag_out.write(reinterpret_cast<const char*>(&gamm), sizeof(gamm));
         diag_out.write(reinterpret_cast<const char*>(&dp_dt_1), sizeof(dp_dt_1));
         diag_out.write(reinterpret_cast<const char*>(&dp_dt_2), sizeof(dp_dt_2));
@@ -156,12 +158,20 @@ void diagnose_gct(string& filePath){
 
         static int last_percent = -1;
         int percent = static_cast<int>(100.0 * (i + 1) / write_count);
-        if (percent != last_percent) {
-            // Move cursor up one line and clear it (ANSI escape codes)
-            cout << "\033[A\33[2K\r";
-            cout << "Progress: " << (i + 1) << " / " << write_count << " (" << percent << "%)" << endl;
+        if (percent != last_percent){
+            // Remove previous line
+            cout << "\r" << string(50, ' ') << "\r";
+            cout << "Progress: " << percent << "% (" << (i + 1) << " / " << write_count << ")" << flush;
             last_percent = percent;
         }
+        // static int last_percent = -1;
+        // int percent = static_cast<int>(100.0 * (i + 1) / write_count);
+        // if (percent != last_percent) {
+        //     // Move cursor up one line and clear it (ANSI escape codes)
+        //     cout << "\033[A\33[2K\r";
+        //     cout << "Progress: " << (i + 1) << " / " << write_count << " (" << percent << "%)" << endl;
+        //     last_percent = percent;
+        // }
     }
     diag_out.close();
     cout << "Diagnostics written to: " << diagFilePath << endl;
@@ -169,37 +179,86 @@ void diagnose_gct(string& filePath){
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
     cout << "\nTotal dianosing time: " << elapsed.count() << " seconds." << endl;
-
+    return 0;
 }
 
 int main(){
     cout << "Diagnosing simulation result ..." << endl;
 
-    // 获取当前可执行文件路径
-    char exePath[MAX_PATH];
-    GetModuleFileNameA(NULL, exePath, MAX_PATH);
+    // // 获取当前可执行文件路径
+    // char exePath[MAX_PATH];
+    // GetModuleFileNameA(NULL, exePath, MAX_PATH);
 
-    // 提取目录部分
-    exeDir = exePath;
-    size_t pos = exeDir.find_last_of("\\/");
-    exeDir = (pos != string::npos) ? exeDir.substr(0, pos) : ".";
+    // // 提取目录部分
+    // exeDir = exePath;
+    // size_t pos = exeDir.find_last_of("\\/");
+    // exeDir = (pos != string::npos) ? exeDir.substr(0, pos) : ".";
 
-    // 查找input目录下的*.para文件
-    string inputDir = exeDir + "\\input\\";
-    string searchPattern = inputDir + "*.para";
+    // Get the current executable path
+    char exePath[1024];
+#ifdef _WIN32
+    GetModuleFileNameA(NULL, exePath, sizeof(exePath));
+    exeDir = string(exePath);
+    exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
+    exeDir += "\\";
+#else
+    ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
+    string exeDir = string(exePath, (count > 0) ? count : 0);
+    exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
+    exeDir += "/";
+#endif
+
+    // // 查找input目录下的*.para文件
+    // string inputDir = exeDir + "\\input\\";
+    // string searchPattern = inputDir + "*.para";
+    // struct _finddata_t fileinfo;
+    // intptr_t handle = _findfirst(searchPattern.c_str(), &fileinfo);
+
+    // if (handle == -1L) {
+    //     cerr << "Error: No .para files found in " << inputDir << endl;
+    //     return 1;
+    // }
+    // do {
+    //     string filePath = inputDir + fileinfo.name;
+    //     cout << "Processing file: " << filePath << endl;
+    //     diagnose_gct(filePath);
+    // } while (_findnext(handle, &fileinfo) == 0);
+    // _findclose(handle);
+
+    // Read all .para files in exeDir
+    vector<string> para_files;
+#ifdef _WIN32
+    string search_path = exeDir + "\\input\\*.para";
     struct _finddata_t fileinfo;
-    intptr_t handle = _findfirst(searchPattern.c_str(), &fileinfo);
-
-    if (handle == -1L) {
-        cerr << "Error: No .para files found in " << inputDir << endl;
-        return 1;
+    intptr_t handle = _findfirst(search_path.c_str(), &fileinfo);
+    if (handle != -1) {
+        do {
+            para_files.push_back(exeDir +"input\\"+ fileinfo.name);
+        } while (_findnext(handle, &fileinfo) == 0);
+        _findclose(handle);
     }
-    do {
-        string filePath = inputDir + fileinfo.name;
-        cout << "Processing file: " << filePath << endl;
-        diagnose_gct(filePath);
-    } while (_findnext(handle, &fileinfo) == 0);
-    _findclose(handle);
+#else
+    DIR* dir = opendir(exeDir.c_str());
+    if (dir) {
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            string fname = entry->d_name;
+            if (fname.size() > 5 && fname.substr(fname.size() - 5) == ".para") {
+                para_files.push_back(exeDir + fname);
+            }
+        }
+        closedir(dir);
+    }
+#endif
+
+    // For demonstration, just use the first .para file found
+    if (para_files.empty()) {
+        cerr << "No .para files found in " << exeDir + "input\\"<< endl;
+        exit(1);
+    }
+    for (const auto& para_file : para_files) {
+        diagnose_gct(para_file);
+    }
 
     return 0;
 

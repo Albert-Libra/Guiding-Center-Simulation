@@ -44,3 +44,17 @@ status = system('Diagnosor.exe');
 if status ~= 0
     error('Failed to execute Diagnosor.exe');
 end
+
+%% Search for .gcd files in the output folder
+output_path = '.\output\';
+gctFiles = dir([output_path, '*.gcd']);
+if isempty(gctFiles)
+    error('No .gcd files found in the output directory.');
+end
+
+% Process each .gct file
+for k = 1:length(gctFiles)
+    gcdFilePath = fullfile(output_path, gctFiles(k).name);
+    gcd_data = read_gcd(gcdFilePath);
+    break
+end
