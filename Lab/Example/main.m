@@ -10,16 +10,16 @@ if isempty(paraFiles)
     particle_initialize(input_path_full);
 end
 
-%% Check if Solver.exe exists in the current directory
-if ~isfile('Solver.exe')
-    error('Solver.exe not found in the current directory. Copy it from guiding_center_solver\\build\\');
-end
-
-% Run Solver.exe
-status = system('Solver.exe');
-if status ~= 0
-    error('Failed to execute Solver.exe');
-end
+% %% Check if Solver.exe exists in the current directory
+% if ~isfile('Solver.exe')
+%     error('Solver.exe not found in the current directory. Copy it from guiding_center_solver\\build\\');
+% end
+% 
+% % Run Solver.exe
+% status = system('Solver.exe');
+% if status ~= 0
+%     error('Failed to execute Solver.exe');
+% end
 
 %% Search for .gct files in the output folder
 output_path = '.\output\';
@@ -35,26 +35,5 @@ for k = 1:length(gctFiles)
     break
 end
 
-%% check if Diagnosor.exe exists in the current directory
-if ~isfile('Diagnosor.exe')
-    error('Diagnosor.exe not found in the current directory. Copy it from guiding_center_solver\\build\\');
-end
-% Run Diagnosor.exe
-status = system('Diagnosor.exe');
-if status ~= 0
-    error('Failed to execute Diagnosor.exe');
-end
-
-%% Search for .gcd files in the output folder
-output_path = '.\output\';
-gctFiles = dir([output_path, '*.gcd']);
-if isempty(gctFiles)
-    error('No .gcd files found in the output directory.');
-end
-
-% Process each .gct file
-for k = 1:length(gctFiles)
-    gcdFilePath = fullfile(output_path, gctFiles(k).name);
-    gcd_data = read_gcd(gcdFilePath);
-    break
-end
+% 保存当前图像为PNG文件
+saveas(gcf, 'figures\trajectory.png');
