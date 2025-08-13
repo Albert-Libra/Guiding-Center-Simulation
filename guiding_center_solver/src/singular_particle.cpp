@@ -190,7 +190,6 @@ int singular_particle(const std::string& para_file)
     
     // Write the number of writes to the beginning of the file
     ofstream outfile(outFilePath, ios::binary | ios::trunc);
-    // static ofstream outfile(outFilePath, ios::binary | ios::trunc);
     if (!outfile)
     {
         cerr << "Failed to open output file: " + outFilePath << endl;
@@ -209,6 +208,15 @@ int singular_particle(const std::string& para_file)
 
     // Record start time
     auto start_time = std::chrono::high_resolution_clock::now();
+    
+    // 记录初始信息到日志
+    logFile << "Starting simulation with parameters:" << endl;
+    logFile << "dt = " << dt << ", E0 = " << E0 << ", q = " << q << endl;
+    logFile << "t_ini = " << t_ini << ", t_interval = " << t_interval << ", write_interval = " << write_interval << endl;
+    logFile << "Position: [" << xgsm << ", " << ygsm << ", " << zgsm << "]" << endl;
+    logFile << "Ek = " << Ek << ", pa = " << pa << ", atmosphere_altitude = " << atmosphere_altitude << endl;
+    logFile << "t_step = " << t_step << ", r_step = " << r_step << endl;
+    logFile << "num_steps = " << num_steps << ", write_step = " << write_step << endl;
 
     for (long i = 1; i <= num_steps; ++i)
     {
@@ -224,20 +232,16 @@ int singular_particle(const std::string& para_file)
             outfile.write(reinterpret_cast<const char *>(Y.data()), Y.size() * sizeof(double));
             ++actual_write_count;
         }
-        // Output progress every 1%
+        // Output progress every 1% (只输出到日志，不输出到控制台)
         static int last_percent = -1;
         int percent = static_cast<int>(100.0 * i / num_steps);
         if (percent != last_percent)
         {
-            // Remove previous line
-            cout << "\r" << string(50, ' ') << "\r";
-            cout << "Progress: " << percent << "% (" << i << " / " << num_steps << ")" << flush;
             logFile << "Progress: " << percent << "% (" << i << " / " << num_steps << ")" << endl;
             last_percent = percent;
         }
         if (sqrt(Y[1] * Y[1] + Y[2] * Y[2] + Y[3] * Y[3]) < (1.0 + atmosphere_altitude / 6371.0))
         {
-            cout << "\nParticle has reached the atmosphere (r < 1 RE). Stopping simulation." << endl;
             logFile << "Particle has reached the atmosphere (r < 1 RE). Stopping simulation." << endl;
             break;
         }
@@ -246,7 +250,6 @@ int singular_particle(const std::string& para_file)
     // Record end time and output elapsed time
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
-    cout << "\nTotal solving time: " << elapsed.count() << " seconds." << endl;
     logFile << "Total solving time: " << elapsed.count() << " seconds." << endl;
 
     // If the actual number of writes is less than the expected number, go back to the file header to modify the write count
@@ -257,7 +260,6 @@ int singular_particle(const std::string& para_file)
         outfile.flush();
     }
     outfile.close();
-    cout << "\nOutput file saved to: " << outFilePath << endl;
     logFile << "Output file saved to: " << outFilePath << endl;
     logFile.close();
     return 0;
