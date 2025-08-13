@@ -5,6 +5,7 @@
 #include <sstream>
 #include <Eigen/Dense>
 #include <chrono>
+#include <process.h> // Windows进程创建API
 
 #include "field_calculator.h"
 #include "particle_calculator.h"
@@ -20,6 +21,21 @@ const double c = 47.055; // Speed of light in RE/s
 string exeDir;
 
 int diagnose_gct(string filePath){
+    // 如果是子进程模式，需要重新初始化exeDir
+    if (exeDir.empty()) {
+        char exePath[1024];
+        #ifdef _WIN32
+            GetModuleFileNameA(NULL, exePath, sizeof(exePath));
+            exeDir = string(exePath);
+            exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
+            exeDir += "\\";
+        #else
+            ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
+            exeDir = string(exePath, (count > 0) ? count : 0);
+            exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
+            exeDir += "/";
+        #endif
+    }
     
     // Read parameters from para_file
     double dt,E0,q,t_ini, t_interval, write_interval;
@@ -35,7 +51,6 @@ int diagnose_gct(string filePath){
     string line;
     int idx = 0;
     while (getline(para_in, line)) {
-
         if (line.empty()) continue;
         
         size_t pos = line.find(';');
@@ -76,24 +91,39 @@ int diagnose_gct(string filePath){
     snprintf(filename, sizeof(filename),
              "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f",
             E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
-    string outFilePath = exeDir + "output\\" + filename + ".gct";
+    #ifdef _WIN32
+        string outFilePath = exeDir + "output\\" + filename + ".gct";
+        string diagFilePath = exeDir + "output\\" + filename + ".gcd";
+    #else
+        string outFilePath = exeDir + "output/" + filename + ".gct";
+        string diagFilePath = exeDir + "output/" + filename + ".gcd";
+    #endif
+    
+    // 检查并创建输出目录
+    #ifdef _WIN32
+        string outputDir = exeDir + "output\\";
+        if (_access(outputDir.c_str(), 0) != 0) _mkdir(outputDir.c_str());
+    #else
+        string outputDir = exeDir + "output/";
+        struct stat st = {0};
+        if (stat(outputDir.c_str(), &st) == -1) mkdir(outputDir.c_str(), 0755);
+    #endif
 
     ifstream infile(outFilePath, ios::binary);
     if (!infile) {
-        cerr << "Failed to open file: " << filePath << endl;
+        cerr << "Failed to open file: " << outFilePath << endl;
         exit(1);
     }
     // Read the number of records
     long write_count;
     infile.read(reinterpret_cast<char*>(&write_count), sizeof(write_count));
     if (infile.gcount() != sizeof(write_count)) {
-        cerr << "Failed to read write count from file: " << filePath << endl;
+        cerr << "Failed to read write count from file: " << outFilePath << endl;
         exit(1);
     }
 
     cout << "Diagnosing file: " << outFilePath << endl;
     // Prepare to read the data and write the diagnostics
-    string diagFilePath = exeDir + "\\output\\" + filename + ".gcd";
     ofstream diag_out(diagFilePath, ios::binary | ios::trunc);
     if (!diag_out) {
         cerr << "Failed to open diagnostics file: " << diagFilePath << endl;
@@ -106,7 +136,7 @@ int diagnose_gct(string filePath){
     for (long i = 0; i < write_count; ++i) {
         infile.read(reinterpret_cast<char*>(Y.data()), Y.size() * sizeof(double));
         if (infile.gcount() != Y.size() * sizeof(double)) {
-            cerr << "Failed to read record " << i << " from file: " << filePath << endl;
+            cerr << "Failed to read record " << i << " from file: " << outFilePath << endl;
             exit(1);
         }
         // calculate B, velocity, gamma, betatron acceleration
@@ -118,6 +148,12 @@ int diagnose_gct(string filePath){
 
         Vector3d B = Bvec(t, x, y, z);
         double Bt = B.norm();
+        if (Bt < 1e-10) {
+            cerr << "ERROR: Zero magnetic field detected at position [" << x << ", " << y << ", " << z 
+                 << "], time = " << t << " (record " << i << ")" << endl;
+            cerr << "Cannot compute unit vector and drift velocities with zero field." << endl;
+            exit(1);
+        }
         Vector3d E = Evec(t, x, y, z);
 
         VectorXd dB = B_grad_curv(t, x, y, z, r_step);
@@ -164,35 +200,26 @@ int diagnose_gct(string filePath){
             cout << "Progress: " << percent << "% (" << (i + 1) << " / " << write_count << ")" << flush;
             last_percent = percent;
         }
-        // static int last_percent = -1;
-        // int percent = static_cast<int>(100.0 * (i + 1) / write_count);
-        // if (percent != last_percent) {
-        //     // Move cursor up one line and clear it (ANSI escape codes)
-        //     cout << "\033[A\33[2K\r";
-        //     cout << "Progress: " << (i + 1) << " / " << write_count << " (" << percent << "%)" << endl;
-        //     last_percent = percent;
-        // }
     }
     diag_out.close();
     cout << "Diagnostics written to: " << diagFilePath << endl;
     infile.close();
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
-    cout << "\nTotal dianosing time: " << elapsed.count() << " seconds." << endl;
+    cout << "\nTotal diagnosing time: " << elapsed.count() << " seconds." << endl;
     return 0;
 }
 
-int main(){
+int main(int argc, char* argv[]){
+    // 检查是否为子进程模式
+    if (argc > 1) {
+        // 子进程模式：直接处理参数文件并返回
+        string para_file = argv[1];
+        diagnose_gct(para_file);
+        return 0;
+    }
+
     cout << "Diagnosing simulation result ..." << endl;
-
-    // // 获取当前可执行文件路径
-    // char exePath[MAX_PATH];
-    // GetModuleFileNameA(NULL, exePath, MAX_PATH);
-
-    // // 提取目录部分
-    // exeDir = exePath;
-    // size_t pos = exeDir.find_last_of("\\/");
-    // exeDir = (pos != string::npos) ? exeDir.substr(0, pos) : ".";
 
     // Get the current executable path
     char exePath[1024];
@@ -207,23 +234,6 @@ int main(){
     exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
     exeDir += "/";
 #endif
-
-    // // 查找input目录下的*.para文件
-    // string inputDir = exeDir + "\\input\\";
-    // string searchPattern = inputDir + "*.para";
-    // struct _finddata_t fileinfo;
-    // intptr_t handle = _findfirst(searchPattern.c_str(), &fileinfo);
-
-    // if (handle == -1L) {
-    //     cerr << "Error: No .para files found in " << inputDir << endl;
-    //     return 1;
-    // }
-    // do {
-    //     string filePath = inputDir + fileinfo.name;
-    //     cout << "Processing file: " << filePath << endl;
-    //     diagnose_gct(filePath);
-    // } while (_findnext(handle, &fileinfo) == 0);
-    // _findclose(handle);
 
     // Read all .para files in exeDir
     vector<string> para_files;
@@ -251,15 +261,70 @@ int main(){
     }
 #endif
 
-    // For demonstration, just use the first .para file found
     if (para_files.empty()) {
         cerr << "No .para files found in " << exeDir + "input\\"<< endl;
         exit(1);
     }
+    
+    // Record start time
+    auto total_start_time = std::chrono::high_resolution_clock::now();
+    
+    // 并行处理：为每个参数文件启动一个单独的进程
+    cout << "Starting " << para_files.size() << " processes for diagnosis..." << endl;
+    vector<intptr_t> process_handles;
+
     for (const auto& para_file : para_files) {
-        diagnose_gct(para_file);
+        string cmd = string(argv[0]) + " \"" + para_file + "\"";
+        
+        #ifdef _WIN32
+        // Windows下创建进程
+        PROCESS_INFORMATION pi;
+        STARTUPINFOA si;
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        ZeroMemory(&pi, sizeof(pi));
+        
+        // 创建进程
+        if (CreateProcessA(NULL, (LPSTR)cmd.c_str(), NULL, NULL, FALSE, 
+                          0, NULL, NULL, &si, &pi)) {
+            process_handles.push_back((intptr_t)pi.hProcess);
+            CloseHandle(pi.hThread); // 关闭线程句柄，只保留进程句柄
+        } else {
+            cerr << "Failed to create process for: " << para_file << endl;
+        }
+        #else
+        // Unix/Linux下使用fork+exec创建进程
+        pid_t pid = fork();
+        if (pid == 0) {  // 子进程
+            execlp(argv[0], argv[0], para_file.c_str(), NULL);
+            exit(1);  // 如果exec失败
+        } else if (pid > 0) {  // 父进程
+            process_handles.push_back(pid);
+        } else {
+            cerr << "Failed to create process for: " << para_file << endl;
+        }
+        #endif
     }
 
-    return 0;
+    // 等待所有进程完成
+    cout << "Waiting for all diagnosis processes to complete..." << endl;
+    
+    #ifdef _WIN32
+    for (auto handle : process_handles) {
+        WaitForSingleObject((HANDLE)handle, INFINITE);
+        CloseHandle((HANDLE)handle);
+    }
+    #else
+    for (auto pid : process_handles) {
+        int status;
+        waitpid(pid, &status, 0);
+    }
+    #endif
 
+    // Record end time and output elapsed time
+    auto total_end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> total_elapsed = total_end_time - total_start_time;
+    cout << "\nTotal diagnosis program time: " << total_elapsed.count() << " seconds." << endl;
+
+    return 0;
 }
