@@ -1,4 +1,4 @@
-# Radiation Belt Guiding Center Simulation
+# Guiding Center Simulation
 
 ## Overview
 
