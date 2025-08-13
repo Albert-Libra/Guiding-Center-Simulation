@@ -41,38 +41,22 @@ function plot_trajectory(filename)
     ycst = cosd(coastlat).*sind(coastlon);
     zcst = sind(coastlat);
     
-    if ~libisloaded('geopack_caller')
-        dll_path = fullfile(fileparts(mfilename('fullpath')), 'include', 'geopack_caller.dll');
-        h_path   = fullfile(fileparts(mfilename('fullpath')), 'include', 'geopack_matlab_caller.h');
-        loadlibrary(dll_path, h_path);
-    end
-    year  = libpointer('int32Ptr', int32(2020));
-    day   = libpointer('int32Ptr', int32(1));
-    hour  = libpointer('int32Ptr', int32(0));
-    minu  = libpointer('int32Ptr', int32(0));
-    sec   = libpointer('doublePtr', 0);
-    vgsex = libpointer('doublePtr', -400);
-    vgsey = libpointer('doublePtr', 0);
-    vgsez = libpointer('doublePtr', 0);
-    calllib('geopack_caller', 'recalc', year, day, hour, minu, sec, vgsex, vgsey, vgsez);
+    % GEO to GSM conversion
+    g = geopack();
+    g.recalc(datetime(2020,1,1));
 
     xgsm_arr = zeros(size(xcst));
     ygsm_arr = zeros(size(ycst));
     zgsm_arr = zeros(size(zcst));
-    J = libpointer('int32Ptr', int32(1));
+
     for i = 1:length(xcst)
-        xgeo = libpointer('doublePtr', xcst(i));
-        ygeo = libpointer('doublePtr', ycst(i));
-        zgeo = libpointer('doublePtr', zcst(i));
-        xgsm = libpointer('doublePtr', 0);
-        ygsm = libpointer('doublePtr', 0);
-        zgsm = libpointer('doublePtr', 0);
-        calllib('geopack_caller', 'geogsm', xgeo, ygeo, zgeo, xgsm, ygsm, zgsm, J);
-        xgsm_arr(i) = xgsm.Value;
-        ygsm_arr(i) = ygsm.Value;
-        zgsm_arr(i) = zgsm.Value;
+        geo_coords = [xcst(i), ycst(i), zcst(i)];
+        gsm_coords = g.geogsm(geo_coords);
+        xgsm_arr(i) = gsm_coords(1);
+        ygsm_arr(i) = gsm_coords(2);
+        zgsm_arr(i) = gsm_coords(3);
     end
-    unloadlibrary('geopack_caller');
+    g.unload();
     
 
     plot3(ax1, xgsm_arr, ygsm_arr, zgsm_arr, 'Color', [0.65, 0.33, 0.1], 'LineWidth', 1.5);
