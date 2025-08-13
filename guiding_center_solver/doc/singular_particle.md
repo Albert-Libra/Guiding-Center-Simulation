@@ -46,6 +46,7 @@ This document describes the usage and workflow of `singular_particle.cpp`, which
 When the spatial scale of interest is much larger than the gyroradius of a charged particle and the particle is only influenced by electromagnetic fields, the particle's equation of motion can be gyro-averaged to obtain the guiding center equations of motion ([Northrop, 1963](https://doi.org/10.1029/RG001i003p00283); [Luo et al., 2024](https://doi.org/10.1029/2024GL109678)). The guiding center is a geometric point, not a material point. Its motion does not follow Newton's second law, but is instead described by the following equations:
 
 $$
+
 \frac{\rm d}{{\rm d}t}\begin{pmatrix}
 \vec{R}\\ p_{\parallel}
 \end{pmatrix} = 
@@ -53,6 +54,7 @@ $$
 \vec{V}_d + \vec{v}_\parallel\\ 
 \displaystyle qE_\parallel-\frac{\mu}{\gamma}\nabla_\parallel B+\gamma m_0\vec{V}_d\cdot\frac{{\rm d}\vec e_B}{{\rm d}t}
 \end{pmatrix}\tag{1}
+
 $$
 
 where 
@@ -72,17 +74,23 @@ Drift velocity can be calculated as follows:
 
 - **$\vec{E} \times \vec{B}$ drift:**
   $$
+
   \vec{v}_{\mathrm{ExB}} = \frac{\vec{E} \times \vec{B}}{B^2}
+
   $$
 
 - **Gradient drift:**
   $$
+
   \vec{v}_{\mathrm{grad}} = \frac{\mu}{\gamma q B^2} \, \vec{B} \times \nabla B
+
   $$
 
 - **Curvature drift:**
   $$
+
   \vec{v}_{\mathrm{curv}} = \frac{(p_\parallel c)^2}{\gamma E_0 q B^2} \, \vec{B} \times \vec{\kappa}
+  
   $$
   where $p_\parallel$ is the parallel momentum, $c$ is the speed of light, $E_0$ is the rest energy, and $\vec{\kappa}$ is the magnetic field curvature vector.
 
