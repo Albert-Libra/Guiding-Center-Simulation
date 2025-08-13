@@ -1,4 +1,6 @@
 function plot_trajectory(filename)
+    % plot_trajectory - Plots the trajectory and gamma of particles from the .gct file.
+    
     [~, t_val, x_val, y_val, z_val, ~] = read_gct(filename);
     gcd_data = read_gcd(strrep(filename, '.gct', '.gcd'));
 

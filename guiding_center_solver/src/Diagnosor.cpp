@@ -5,7 +5,7 @@
 #include <sstream>
 #include <Eigen/Dense>
 #include <chrono>
-#include <process.h> // Windows进程创建API
+#include <process.h> // Windows process creation API
 
 #include "field_calculator.h"
 #include "particle_calculator.h"
@@ -21,7 +21,7 @@ const double c = 47.055; // Speed of light in RE/s
 string exeDir;
 
 int diagnose_gct(string filePath){
-    // 如果是子进程模式，需要重新初始化exeDir
+    // If in child process mode, reinitialize exeDir
     if (exeDir.empty()) {
         char exePath[1024];
         #ifdef _WIN32
@@ -37,7 +37,7 @@ int diagnose_gct(string filePath){
         #endif
     }
 
-    // 日志文件名与para文件同名，只扩展名为.log
+    // Log file name is the same as para file, only extension is .log
     #ifdef _WIN32
         string logDir = exeDir + "log\\";
         if (_access(logDir.c_str(), 0) != 0) {_mkdir(logDir.c_str());}
@@ -58,7 +58,7 @@ int diagnose_gct(string filePath){
         exit(1);
     }
 
-    // 之后所有输出都写入logFile
+    // All output below is written to logFile
     // logFile << "Trying to open parameter file: " << filePath << endl;
     ifstream para_in(filePath);
     if (!para_in) {
@@ -122,7 +122,7 @@ int diagnose_gct(string filePath){
         string diagFilePath = exeDir + "output/" + filename + ".gcd";
     #endif
     
-    // 检查并创建输出目录
+    // Check and create output directory
     #ifdef _WIN32
         string outputDir = exeDir + "output\\";
         if (_access(outputDir.c_str(), 0) != 0) _mkdir(outputDir.c_str());
@@ -154,7 +154,7 @@ int diagnose_gct(string filePath){
     }
     diag_out.write(reinterpret_cast<const char *>(&write_count), sizeof(write_count));
     
-    // 写入日志头部信息，包含时间戳
+    // Write log header with timestamp
     time_t now = time(nullptr);
     char timeBuffer[80];
     struct tm timeinfo;
@@ -231,7 +231,7 @@ int diagnose_gct(string filePath){
         diag_out.write(reinterpret_cast<const char*>(&dp_dt_3), sizeof(dp_dt_3));
         diag_out.write(reinterpret_cast<const char*>(&pB_pt), sizeof(pB_pt));
 
-        // 优化进度输出：只在10%倍数时输出，减少日志文件大小
+        // Optimized progress output: only output at multiples of 10% to reduce log file size
         static int last_percent = -1;
         int percent = static_cast<int>(100.0 * (i + 1) / write_count);
         if (percent != last_percent && percent % 10 == 0) {
@@ -239,18 +239,18 @@ int diagnose_gct(string filePath){
             last_percent = percent;
         }
 
-        // 记录异常值（可选）
+        // Record abnormal values (optional)
         if (gamm > 100 || isnan(gamm) || isinf(gamm)) {
             logFile << "WARNING: Unusual gamma value " << gamm << " at record " << i 
                     << ", position [" << x << ", " << y << ", " << z << "]" << endl;
         }
     }
     
-    // 计算结束时间
+    // Calculate end time
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
     
-    // 获取结束时间戳
+    // Get end timestamp
     now = time(nullptr);
     #ifdef _WIN32
         localtime_s(&timeinfo, &now);
@@ -259,7 +259,7 @@ int diagnose_gct(string filePath){
     #endif
     strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
     
-    // 写入总结信息
+    // Write summary information
     logFile << "=== DIAGNOSTIC PROCESS COMPLETED ===" << endl;
     logFile << "Total records processed: " << write_count << endl;
     logFile << "Diagnostics written to: " << diagFilePath << endl;
@@ -275,9 +275,9 @@ int diagnose_gct(string filePath){
 }
 
 int main(int argc, char* argv[]){
-    // 检查是否为子进程模式
+    // Check if in child process mode
     if (argc > 1) {
-        // 子进程模式：直接处理参数文件并返回
+        // Child process mode: directly process parameter file and return
         string para_file = argv[1];
         diagnose_gct(para_file);
         return 0;
@@ -358,7 +358,7 @@ int main(int argc, char* argv[]){
     }
     mainLogFile << "Starting parallel processing..." << endl;
     
-    // 并行处理：为每个参数文件启动一个单独的进程
+    // Parallel processing: start a separate process for each parameter file
     cout << "Starting " << para_files.size() << " processes for diagnosis..." << endl;
     vector<intptr_t> process_handles;
 
@@ -366,28 +366,28 @@ int main(int argc, char* argv[]){
         string cmd = string(argv[0]) + " \"" + para_file + "\"";
         
         #ifdef _WIN32
-        // Windows下创建进程
+        // Create process on Windows
         PROCESS_INFORMATION pi;
         STARTUPINFOA si;
         ZeroMemory(&si, sizeof(si));
         si.cb = sizeof(si);
         ZeroMemory(&pi, sizeof(pi));
         
-        // 创建进程
+        // Create process
         if (CreateProcessA(NULL, (LPSTR)cmd.c_str(), NULL, NULL, FALSE, 
                           0, NULL, NULL, &si, &pi)) {
             process_handles.push_back((intptr_t)pi.hProcess);
-            CloseHandle(pi.hThread); // 关闭线程句柄，只保留进程句柄
+            CloseHandle(pi.hThread); // Close thread handle, keep process handle
         } else {
             cerr << "Failed to create process for: " << para_file << endl;
         }
         #else
-        // Unix/Linux下使用fork+exec创建进程
+        // On Unix/Linux, use fork+exec to create process
         pid_t pid = fork();
-        if (pid == 0) {  // 子进程
+        if (pid == 0) {  // Child process
             execlp(argv[0], argv[0], para_file.c_str(), NULL);
-            exit(1);  // 如果exec失败
-        } else if (pid > 0) {  // 父进程
+            exit(1);  // If exec fails
+        } else if (pid > 0) {  // Parent process
             process_handles.push_back(pid);
         } else {
             cerr << "Failed to create process for: " << para_file << endl;
@@ -395,7 +395,7 @@ int main(int argc, char* argv[]){
         #endif
     }
 
-    // 等待所有进程完成
+    // Wait for all processes to complete
     cout << "Waiting for all diagnosis processes to complete..." << endl;
     
     #ifdef _WIN32
@@ -415,7 +415,7 @@ int main(int argc, char* argv[]){
     std::chrono::duration<double> total_elapsed = total_end_time - total_start_time;
     cout << "\nTotal diagnosis program time: " << total_elapsed.count() << " seconds." << endl;
 
-    // 等待所有进程完成后的日志
+    // Log after all processes are done
     now = time(nullptr);
     #ifdef _WIN32
         localtime_s(&timeinfo, &now);

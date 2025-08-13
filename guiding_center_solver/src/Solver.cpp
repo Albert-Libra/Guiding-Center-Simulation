@@ -9,7 +9,7 @@
 #include <libloaderapi.h>
 #include <io.h>
 #include <direct.h>
-#include <process.h> // Windows进程创建API
+#include <process.h> // Windows process creation API
 
 #include "field_calculator.h"
 #include "particle_calculator.h"
@@ -22,15 +22,15 @@ string exeDir;
 
 int main(int argc, char* argv[])
 {
-    // 检查是否为子进程模式
+    // check if the program is running in child process mode
     if (argc > 1) {
-        // 子进程模式：直接处理参数文件并返回
+        // If the program is running in child process mode, it will directly handle the parameter file and return
         string para_file = argv[1];
         singular_particle(para_file);
         return 0;
     }
 
-    // 以下是主进程模式
+    // This is the main process mode, where it will read all parameter files and start child processes for each file
     
     // Get the current executable path
     char exePath[1024];
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     exeDir += "/";
 #endif
 
-    // 检查并创建日志目录
+    // Create log directory if it doesn't exist
     #ifdef _WIN32
         string logDir = exeDir + "log\\";
         if (_access(logDir.c_str(), 0) != 0) {_mkdir(logDir.c_str());}
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    // 创建主进程日志文件
+    // create main log file
     string mainLogPath = logDir + "main.log";
     ofstream mainLogFile(mainLogPath, ios::out | ios::trunc);
     if (!mainLogFile) {
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
         exit(1);
     }
     
-    // 写入日志头部信息，包含时间戳
+    // write log header information with timestamp
     time_t now = time(nullptr);
     char timeBuffer[80];
     struct tm timeinfo;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[])
     // Record start time
     auto total_start_time = std::chrono::high_resolution_clock::now();
     
-    // 并行处理：为每个参数文件启动一个单独的进程
+    // Parallel processing: launch a separate process for each parameter file
     cout << "Starting " << para_files.size() << " processes..." << endl;
     mainLogFile << "Creating " << para_files.size() << " child processes..." << endl;
     
@@ -131,30 +131,30 @@ int main(int argc, char* argv[])
         mainLogFile << "Command: " << cmd << endl;
         
         #ifdef _WIN32
-        // Windows下创建进程
+        // Create process on Windows
         PROCESS_INFORMATION pi;
         STARTUPINFOA si;
         ZeroMemory(&si, sizeof(si));
         si.cb = sizeof(si);
         ZeroMemory(&pi, sizeof(pi));
         
-        // 创建进程
+        // create process
         if (CreateProcessA(NULL, (LPSTR)cmd.c_str(), NULL, NULL, FALSE, 
                           0, NULL, NULL, &si, &pi)) {
             process_handles.push_back((intptr_t)pi.hProcess);
-            CloseHandle(pi.hThread); // 关闭线程句柄，只保留进程句柄
+            CloseHandle(pi.hThread); // close thread handle, keep process handle
             mainLogFile << "Process created successfully, PID: " << pi.dwProcessId << endl;
         } else {
             mainLogFile << "ERROR: Failed to create process for: " << para_file << endl;
             cerr << "Failed to create process for: " << para_file << endl;
         }
         #else
-        // Unix/Linux下使用fork+exec创建进程
+        // Unix/Linux uses fork+exec to create processes
         pid_t pid = fork();
-        if (pid == 0) {  // 子进程
+        if (pid == 0) {  // child process
             execlp(argv[0], argv[0], para_file.c_str(), NULL);
-            exit(1);  // 如果exec失败
-        } else if (pid > 0) {  // 父进程
+            exit(1);  // If exec fails, exit child process
+        } else if (pid > 0) {  // parent process
             process_handles.push_back(pid);
             mainLogFile << "Process created successfully, PID: " << pid << endl;
         } else {
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
         #endif
     }
 
-    // 等待所有进程完成
+    // wait for all processes to complete
     cout << "Waiting for all processes to complete..." << endl;
     mainLogFile << "Waiting for all " << process_handles.size() << " processes to complete..." << endl;
     
@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
     std::chrono::duration<double> total_elapsed = total_end_time - total_start_time;
     cout << "\nTotal program time: " << total_elapsed.count() << " seconds." << endl;
 
-    // 获取结束时间戳
+    // obtain end timestamp
     now = time(nullptr);
     #ifdef _WIN32
         localtime_s(&timeinfo, &now);
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
     #endif
     strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
     
-    // 写入总结信息
+    // write end log information
     mainLogFile << "=== ALL SIMULATION PROCESSES COMPLETED ===" << endl;
     mainLogFile << "Total files processed: " << para_files.size() << endl;
     mainLogFile << "Total processing time: " << total_elapsed.count() << " seconds" << endl;

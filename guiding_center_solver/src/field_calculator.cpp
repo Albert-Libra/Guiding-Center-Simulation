@@ -11,12 +11,12 @@ using namespace Eigen;
 // calculate the magnetic field vector in GSM coordinates
 // IGRF model for this version
 Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
-    // t是epoch时间，将它转换为year、day、hour、minute、second
+    // t is epoch time in seconds, convert it to year, day, hour, minute, second
     time_t epoch_time = static_cast<time_t>(t);
     tm* time_info = gmtime(&epoch_time);
 
-    int IYEAR = time_info->tm_year + 1900; // tm_year基于1900
-    int IDAY = time_info->tm_yday + 1;       // tm_yday从0开始，所以加1
+    int IYEAR = time_info->tm_year + 1900; // tm_year is years since 1900
+    int IDAY = time_info->tm_yday + 1; // tm_yday is 0-based, so add 1
     int IHOUR = time_info->tm_hour;
     int MIN = time_info->tm_min;
     double ISEC = static_cast<double>(time_info->tm_sec);
@@ -38,15 +38,15 @@ VectorXd B_grad_curv(const double& t,         //Epoch time in seconds
                            const double& ygsm,      //Y position in GSM coordinates in RE
                            const double& zgsm,      //Z position in GSM coordinates in RE
                            const double& dr) {      //Spatial step size in RE for gradient and curvature calculation
-    // 计算磁场梯度和曲率
+    // calculate the gradient and curvature of the magnetic field vector
     VectorXd B_arr(6);//output vector for B gradient and curvature
 
-    // 计算当前位置的磁场强度
+    // calculate magnetic field at the given position
     Vector3d B0 = Bvec(t, xgsm, ygsm, zgsm);
     double B0_t = B0.norm();
     Vector3d eb = B0 / B0_t;
 
-    // 计算磁场在不同位置的值
+    // calculate magnetic field at the neighboring points
     Vector3d B_x_plus = Bvec(t, xgsm + dr, ygsm, zgsm);
     double B_x_plus_t = B_x_plus.norm();
     Vector3d eb_x_plus = B_x_plus / B_x_plus_t;
@@ -71,12 +71,12 @@ VectorXd B_grad_curv(const double& t,         //Epoch time in seconds
     double B_z_minus_t = B_z_minus.norm();
     Vector3d eb_z_minus = B_z_minus / B_z_minus_t;
 
-    // 计算磁场梯度
+    // calculate magnetic field gradient
     B_arr[0] = (B_x_plus_t - B_x_minus_t) / (2 * dr);
     B_arr[1] = (B_y_plus_t - B_y_minus_t) / (2 * dr);
     B_arr[2] = (B_z_plus_t - B_z_minus_t) / (2 * dr);
 
-    // 计算磁场曲率
+    // calculate magnetic field curvature
     Matrix3d grad_eb;
     grad_eb.col(0) = (eb_x_plus - eb_x_minus) / (2 * dr);
     grad_eb.col(1) = (eb_y_plus - eb_y_minus) / (2 * dr);
@@ -89,7 +89,7 @@ VectorXd B_grad_curv(const double& t,         //Epoch time in seconds
     return B_arr;
 }
 
-//计算磁场方向向量对时间的全导数
+// calculate the total time derivative of the unit magnetic field vector
 Vector3d deb_dt(const double& t, 
                 const double& xgsm, 
                 const double& ygsm, 
@@ -97,14 +97,14 @@ Vector3d deb_dt(const double& t,
                 const Vector3d& v,
                 const double& dr) {
     
-    double dt = dr/ v.norm(); //时间步长
+    double dt = dr/ v.norm(); // time step size based on the spatial step size and velocity
     Vector3d B_minus = Bvec(t - dt, xgsm-dt * v[0], ygsm - dt * v[1], zgsm - dt * v[2]);
     Vector3d B_plus = Bvec(t + dt, xgsm+dt * v[0], ygsm + dt * v[1], zgsm + dt * v[2]);
 
     return (B_plus/B_plus.norm() - B_minus/B_minus.norm()) / (2 * dt);
 }
 
-//计算磁场大小对时间的偏导
+// calculate the partial time derivative of the magnetic field vector
 double pBpt(const double& t, 
                 const double& xgsm, 
                 const double& ygsm, 

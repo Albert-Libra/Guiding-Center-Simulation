@@ -1,6 +1,13 @@
 function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
-    % Read result.gct file
-    %filename = 'D:\\Albert\\artificial_radiation_belt_guiding_center_simulation\\guiding_center_solver\\build\\result.gct';
+    % This function reads a binary file(.gct) containing guiding center trajectory data.
+    % The function returns:
+    %   count      : number of records
+    %   t_val      : array of time values, Epoch time [s]
+    %   x_val      : array of GSM x position, [RE]
+    %   y_val      : array of GSM y positions, [RE]
+    %   z_val      : array of GSM z positions, [RE]
+    %   p_para_val : array of parallel momentum values, [MeV*s/RE]
+    
     fid = fopen(filename, 'rb');
     if fid < 0
         error('Failed to open file %s', filename);
@@ -12,7 +19,6 @@ function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
         error('File is empty or has an incorrect format');
     end
     
-    disp(['Loading: ',filename])
     % Read all data
     data = fread(fid, [5, count], 'double')';
     fclose(fid);
@@ -30,5 +36,4 @@ function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
     z_val      = data(:,4);
     p_para_val = data(:,5);
     
-    disp(['Loaded: ',filename]);
 end

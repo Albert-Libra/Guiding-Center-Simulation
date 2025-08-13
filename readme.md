@@ -71,7 +71,7 @@ g++ -shared -o ../postprocess/include/geopack_caller.dll geopack_caller.cpp -I..
 After building the executables, you can launch your simulation in a sub-directory in `./Lab`. Check out `./Lab/Example` for inspiration.
 
 1. Create an `input/` directory in your workspace. Put your `.para` files there—one for each particle you want to simulate. Or run `./postprocess/particle_initialize.m` if you like MATLAB and waiting.
-2. Run `Solver.exe` in your workspace to start the simulation, then run `Diagnosor.exe` to calculate intermediate physical parameters. Results will appear in the `output/` directory.
+2. Run `Solver.exe` in your workspace to start the simulation, then run `Diagnosor.exe` to calculate intermediate physical parameters. Results will appear in the `output/` directory. ([More information about simulation](./guiding_center_solver/doc/singular_particle.md))
 3. Use `./postprocess/read_gct.m` to convert simulation results to MATLAB variables, and `./postprocess/read_gcd.m` to read diagnostic info. After that, the universe is yours.
 
 ---
@@ -101,14 +101,13 @@ Each `.para` file describes the simulation parameters for a single particle.
 0.001                                ; % spatial step for calculating derivatives [RE], r_step
 
 ```
-**Order matters!**  
-Each line: value [unit] ; comment
+**Order matters!**
 
 ---
 
 ### 2. `.gct` Trajectory Output File
 
-Binary file storing the simulated guiding center trajectory for a particle.
+Binary file storing the simulated guiding center trajectory for a particle. Having the same filename with `.para` file.
 
 **Structure:**
 - `long` (8 bytes): Number of records (N)
@@ -123,7 +122,7 @@ Binary file storing the simulated guiding center trajectory for a particle.
 
 ### 3. `.gcd` Diagnostic Output File
 
-Binary file storing diagnostic physical quantities along the trajectory.
+Binary file storing diagnostic physical quantities along the trajectory. Having the same filename with `.para` file.
 
 **Structure:**
 - `long` (8 bytes): Number of records (N)

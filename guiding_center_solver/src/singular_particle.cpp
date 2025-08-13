@@ -116,7 +116,7 @@ int singular_particle(const std::string& para_file)
         exit(1);
     }
 
-    // 写入日志头部信息，包含时间戳
+    // write log header information with timestamp
     time_t now = time(nullptr);
     char timeBuffer[80];
     struct tm timeinfo;
@@ -183,7 +183,7 @@ int singular_particle(const std::string& para_file)
             E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
     string outFilePath = exeDir + "output\\" + filename;
     
-    // 记录详细参数信息
+    // log the detailed parameters
     logFile << "Parameters loaded successfully:" << endl;
     logFile << "  Particle properties:" << endl;
     logFile << "    E0 = " << E0 << " MeV (rest energy)" << endl;
@@ -224,7 +224,7 @@ int singular_particle(const std::string& para_file)
     int write_step = static_cast<int>(write_interval / abs(dt));
     long write_count = num_steps / write_step + 1;
     
-    // 记录计算设置
+    // log the simulation setup
     logFile << "Simulation setup:" << endl;
     logFile << "  Total momentum p = " << p << " MeV/c" << endl;
     logFile << "  Parallel momentum p_para = " << p_para << " MeV/c" << endl;
@@ -270,8 +270,7 @@ int singular_particle(const std::string& para_file)
             outfile.write(reinterpret_cast<const char *>(Y.data()), Y.size() * sizeof(double));
             ++actual_write_count;
         }
-        
-        // 优化进度输出：只在10%倍数时输出，减少日志文件大小
+        // Output progress every 10% of the total steps
         static int last_percent = -1;
         int percent = static_cast<int>(100.0 * i / num_steps);
         if (percent != last_percent && percent % 10 == 0)
@@ -281,7 +280,7 @@ int singular_particle(const std::string& para_file)
             last_percent = percent;
         }
         
-        // 检查是否到达大气层
+        // check if the particle has reached the atmosphere
         double r_current = sqrt(Y[1] * Y[1] + Y[2] * Y[2] + Y[3] * Y[3]);
         if (r_current < (1.0 + atmosphere_altitude / 6371.0))
         {
@@ -307,7 +306,7 @@ int singular_particle(const std::string& para_file)
     }
     outfile.close();
 
-    // 获取结束时间戳
+    // obtain end timestamp
     now = time(nullptr);
     #ifdef _WIN32
         localtime_s(&timeinfo, &now);
@@ -316,7 +315,7 @@ int singular_particle(const std::string& para_file)
     #endif
     strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
 
-    // 写入总结信息
+    // log the completion of the simulation
     logFile << "=== SIMULATION COMPLETED ===" << endl;
     logFile << "Final state:" << endl;
     logFile << "  Final time: " << Y[0] << " s" << endl;
