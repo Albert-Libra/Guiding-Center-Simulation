@@ -4,4 +4,6 @@ example/test/
 *.para
 *.gct
 *.log
-*asv
+*.asv
+*.png
+*.fig

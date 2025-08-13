@@ -59,5 +59,6 @@ for k = 1:length(gctFiles)
     plot_trajectory(gctFilePath);
     [~, name, ~] = fileparts(gctFiles(k).name);
     saveas(gcf, fullfile(fig_folder, [name, '.png']));
+    saveas(gcf, fullfile(fig_folder, [name, '.fig']));
     close(gcf);
 end
