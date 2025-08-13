@@ -2,10 +2,11 @@ external/
 example/test/
 .vscode/
 *.exe
-*.para
+*.gcd
 *.gct
 *.log
 *.asv
 *.png
 *.fig
+*.pdf
 test.bat
