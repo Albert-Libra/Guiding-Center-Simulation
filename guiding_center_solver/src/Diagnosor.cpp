@@ -59,7 +59,7 @@ int diagnose_gct(string filePath){
     }
 
     // 之后所有输出都写入logFile
-    logFile << "Trying to open parameter file: " << filePath << endl;
+    // logFile << "Trying to open parameter file: " << filePath << endl;
     ifstream para_in(filePath);
     if (!para_in) {
         logFile << "Failed to open parameter file: " << filePath << endl;
@@ -145,7 +145,7 @@ int diagnose_gct(string filePath){
         exit(1);
     }
 
-    logFile << "Diagnosing file: " << outFilePath << endl;
+    // logFile << "Diagnosing file: " << outFilePath << endl;
     
     ofstream diag_out(diagFilePath, ios::binary | ios::trunc);
     if (!diag_out) {
@@ -165,7 +165,7 @@ int diagnose_gct(string filePath){
     #endif
     strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
 
-    logFile << "=== DIAGNOSTIC PROCESS STARTED AT " << timeBuffer << " ===" << endl;
+    logFile << "\n=== DIAGNOSTIC PROCESS STARTED AT " << timeBuffer << " ===" << endl;
     logFile << "Parameter file: " << filePath << endl;
     logFile << "Processing trajectory file: " << outFilePath << endl;
     logFile << "Output diagnostic file: " << diagFilePath << endl;
