@@ -36,18 +36,41 @@ int diagnose_gct(string filePath){
             exeDir += "/";
         #endif
     }
-    
-    // Read parameters from para_file
-    double dt,E0,q,t_ini, t_interval, write_interval;
-    double xgsm, ygsm, zgsm, Ek, pa;
-    double atmosphere_altitude,t_step, r_step;
 
-    cout << "Trying to open parameter file: " << filePath << endl;
-    ifstream para_in(filePath);
-    if (!para_in) {
-        cerr << "Failed to open parameter file: " << filePath << endl;
+    // 日志文件名与para文件同名，只扩展名为.log
+    #ifdef _WIN32
+        string logDir = exeDir + "log\\";
+        if (_access(logDir.c_str(), 0) != 0) {_mkdir(logDir.c_str());}
+    #else
+        string logDir = exeDir + "log/";
+        struct stat st_log = {0};
+        if (stat(logDir.c_str(), &st_log) == -1) {mkdir(logDir.c_str(), 0755);}
+    #endif
+    size_t last_slash = filePath.find_last_of("\\/");
+    string para_filename = (last_slash == string::npos) ? filePath : filePath.substr(last_slash + 1);
+    size_t dot_pos = para_filename.find_last_of('.');
+    string log_filename = (dot_pos == string::npos) ? para_filename + ".log" : para_filename.substr(0, dot_pos) + ".log";
+    string logFilePath = logDir + log_filename;
+    
+    ofstream logFile(logFilePath, ios::out | ios::app);
+    if (!logFile) {
+        cerr << "Failed to create log file: " << logFilePath << endl;
         exit(1);
     }
+
+    // 之后所有输出都写入logFile
+    logFile << "Trying to open parameter file: " << filePath << endl;
+    ifstream para_in(filePath);
+    if (!para_in) {
+        logFile << "Failed to open parameter file: " << filePath << endl;
+        logFile.close();
+        exit(1);
+    }
+    // Declare variables for parameters
+    double dt, E0, q, t_ini, t_interval, write_interval;
+    double xgsm, ygsm, zgsm, Ek, pa, atmosphere_altitude;
+    double t_step, r_step;
+
     string line;
     int idx = 0;
     while (getline(para_in, line)) {
@@ -122,17 +145,36 @@ int diagnose_gct(string filePath){
         exit(1);
     }
 
-    cout << "Diagnosing file: " << outFilePath << endl;
-    // Prepare to read the data and write the diagnostics
+    logFile << "Diagnosing file: " << outFilePath << endl;
+    
     ofstream diag_out(diagFilePath, ios::binary | ios::trunc);
     if (!diag_out) {
         cerr << "Failed to open diagnostics file: " << diagFilePath << endl;
         exit(1);
     }
     diag_out.write(reinterpret_cast<const char *>(&write_count), sizeof(write_count));
+    
+    // 写入日志头部信息，包含时间戳
+    time_t now = time(nullptr);
+    char timeBuffer[80];
+    struct tm timeinfo;
+    #ifdef _WIN32
+        localtime_s(&timeinfo, &now);
+    #else
+        localtime_r(&now, &timeinfo);
+    #endif
+    strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+
+    logFile << "=== DIAGNOSTIC PROCESS STARTED AT " << timeBuffer << " ===" << endl;
+    logFile << "Parameter file: " << filePath << endl;
+    logFile << "Processing trajectory file: " << outFilePath << endl;
+    logFile << "Output diagnostic file: " << diagFilePath << endl;
+    logFile << "Number of records to process: " << write_count << endl;
+    
     // Record start time
     auto start_time = std::chrono::high_resolution_clock::now();
     VectorXd Y(5);
+    
     for (long i = 0; i < write_count; ++i) {
         infile.read(reinterpret_cast<char*>(Y.data()), Y.size() * sizeof(double));
         if (infile.gcount() != Y.size() * sizeof(double)) {
@@ -179,34 +221,56 @@ int diagnose_gct(string filePath){
 
         diag_out.write(reinterpret_cast<const char*>(B.data()), 3 * sizeof(double));
         diag_out.write(reinterpret_cast<const char*>(E.data()), 3 * sizeof(double));
-        // diag_out.write(reinterpret_cast<const char*>(grad_B.data()), 3 * sizeof(double));
-        // diag_out.write(reinterpret_cast<const char*>(curv_B.data()), 3 * sizeof(double));
         diag_out.write(reinterpret_cast<const char*>(vd_ExB.data()), 3 * sizeof(double));
         diag_out.write(reinterpret_cast<const char*>(vd_grad.data()), 3 * sizeof(double));
         diag_out.write(reinterpret_cast<const char*>(vd_curv.data()), 3 * sizeof(double));
         diag_out.write(reinterpret_cast<const char*>(v_para.data()), 3 * sizeof(double));
-        // diag_out.write(reinterpret_cast<const char*>(&mu), sizeof(mu));
         diag_out.write(reinterpret_cast<const char*>(&gamm), sizeof(gamm));
         diag_out.write(reinterpret_cast<const char*>(&dp_dt_1), sizeof(dp_dt_1));
         diag_out.write(reinterpret_cast<const char*>(&dp_dt_2), sizeof(dp_dt_2));
         diag_out.write(reinterpret_cast<const char*>(&dp_dt_3), sizeof(dp_dt_3));
         diag_out.write(reinterpret_cast<const char*>(&pB_pt), sizeof(pB_pt));
 
+        // 优化进度输出：只在10%倍数时输出，减少日志文件大小
         static int last_percent = -1;
         int percent = static_cast<int>(100.0 * (i + 1) / write_count);
-        if (percent != last_percent){
-            // Remove previous line
-            cout << "\r" << string(50, ' ') << "\r";
-            cout << "Progress: " << percent << "% (" << (i + 1) << " / " << write_count << ")" << flush;
+        if (percent != last_percent && percent % 10 == 0) {
+            logFile << "Progress: " << percent << "% (" << (i + 1) << " / " << write_count << " records processed)" << endl;
             last_percent = percent;
         }
+
+        // 记录异常值（可选）
+        if (gamm > 100 || isnan(gamm) || isinf(gamm)) {
+            logFile << "WARNING: Unusual gamma value " << gamm << " at record " << i 
+                    << ", position [" << x << ", " << y << ", " << z << "]" << endl;
+        }
     }
-    diag_out.close();
-    cout << "Diagnostics written to: " << diagFilePath << endl;
-    infile.close();
+    
+    // 计算结束时间
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
-    cout << "\nTotal diagnosing time: " << elapsed.count() << " seconds." << endl;
+    
+    // 获取结束时间戳
+    now = time(nullptr);
+    #ifdef _WIN32
+        localtime_s(&timeinfo, &now);
+    #else
+        localtime_r(&now, &timeinfo);
+    #endif
+    strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    
+    // 写入总结信息
+    logFile << "=== DIAGNOSTIC PROCESS COMPLETED ===" << endl;
+    logFile << "Total records processed: " << write_count << endl;
+    logFile << "Diagnostics written to: " << diagFilePath << endl;
+    logFile << "Total processing time: " << elapsed.count() << " seconds" << endl;
+    logFile << "Average time per record: " << (elapsed.count() / write_count) << " seconds" << endl;
+    logFile << "Completion time: " << timeBuffer << endl;
+    logFile << "=== END OF DIAGNOSTIC LOG ===" << endl;
+    
+    diag_out.close();
+    infile.close();
+    logFile.close();
     return 0;
 }
 
@@ -230,7 +294,7 @@ int main(int argc, char* argv[]){
     exeDir += "\\";
 #else
     ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
-    string exeDir = string(exePath, (count > 0) ? count : 0);
+    exeDir = string(exePath, (count > 0) ? count : 0);
     exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
     exeDir += "/";
 #endif
@@ -238,7 +302,7 @@ int main(int argc, char* argv[]){
     // Read all .para files in exeDir
     vector<string> para_files;
 #ifdef _WIN32
-    string search_path = exeDir + "\\input\\*.para";
+    string search_path = exeDir + "input\\*.para";
     struct _finddata_t fileinfo;
     intptr_t handle = _findfirst(search_path.c_str(), &fileinfo);
     if (handle != -1) {
@@ -268,6 +332,31 @@ int main(int argc, char* argv[]){
     
     // Record start time
     auto total_start_time = std::chrono::high_resolution_clock::now();
+    
+    
+    string mainLogPath = exeDir + "log\\main.log";
+    ofstream mainLogFile(mainLogPath, ios::out | ios::app);
+    if (!mainLogFile) {
+        cerr << "Failed to create main log file: " << mainLogPath << endl;
+        exit(1);
+    }
+    
+    time_t now = time(nullptr);
+    char timeBuffer[80];
+    struct tm timeinfo;
+    #ifdef _WIN32
+        localtime_s(&timeinfo, &now);
+    #else
+        localtime_r(&now, &timeinfo);
+    #endif
+    strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    
+    mainLogFile << "\n=== DIAGNOSOR MAIN PROCESS STARTED AT " << timeBuffer << " ===" << endl;
+    mainLogFile << "Found " << para_files.size() << " parameter files to process:" << endl;
+    for (const auto& file : para_files) {
+        mainLogFile << "  " << file << endl;
+    }
+    mainLogFile << "Starting parallel processing..." << endl;
     
     // 并行处理：为每个参数文件启动一个单独的进程
     cout << "Starting " << para_files.size() << " processes for diagnosis..." << endl;
@@ -325,6 +414,23 @@ int main(int argc, char* argv[]){
     auto total_end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> total_elapsed = total_end_time - total_start_time;
     cout << "\nTotal diagnosis program time: " << total_elapsed.count() << " seconds." << endl;
+
+    // 等待所有进程完成后的日志
+    now = time(nullptr);
+    #ifdef _WIN32
+        localtime_s(&timeinfo, &now);
+    #else
+        localtime_r(&now, &timeinfo);
+    #endif
+    strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+    
+    mainLogFile << "=== ALL DIAGNOSTIC PROCESSES COMPLETED ===" << endl;
+    mainLogFile << "Total files processed: " << para_files.size() << endl;
+    mainLogFile << "Total processing time: " << total_elapsed.count() << " seconds" << endl;
+    mainLogFile << "Average time per file: " << (total_elapsed.count() / para_files.size()) << " seconds" << endl;
+    mainLogFile << "Completion time: " << timeBuffer << endl;
+    mainLogFile << "=== END OF MAIN LOG ===" << endl;
+    mainLogFile.close();
 
     return 0;
 }

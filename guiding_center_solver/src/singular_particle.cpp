@@ -115,7 +115,21 @@ int singular_particle(const std::string& para_file)
         cerr << "Failed to create log file: " << logFilePath << endl;
         exit(1);
     }
-    logFile << "Log file created for parameter file: " << para_file << endl;
+
+    // 写入日志头部信息，包含时间戳
+    time_t now = time(nullptr);
+    char timeBuffer[80];
+    struct tm timeinfo;
+    #ifdef _WIN32
+        localtime_s(&timeinfo, &now);
+    #else
+        localtime_r(&now, &timeinfo);
+    #endif
+    strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+
+    logFile << "=== SIMULATION STARTED AT " << timeBuffer << " ===" << endl;
+    logFile << "Parameter file: " << para_file << endl;
+    logFile << "Log file: " << logFilePath << endl;
     
     // Read parameters from para_file
     double t_ini, t_interval, write_interval;
@@ -124,15 +138,16 @@ int singular_particle(const std::string& para_file)
 
     ifstream para_in(para_file);
     if (!para_in) {
+        logFile << "ERROR: Failed to open parameter file: " << para_file << endl;
         cerr << "Failed to open parameter file: " << para_file << endl;
-        logFile << "Failed to open parameter file: " << para_file << endl;
         logFile.close();
         exit(1);
     }
+    
+    logFile << "Reading parameters from file..." << endl;
     string line;
     int idx = 0;
     while (getline(para_in, line)) {
-
         if (line.empty()) continue;
         
         size_t pos = line.find(';');
@@ -167,6 +182,27 @@ int singular_particle(const std::string& para_file)
              "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f.gct",
             E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
     string outFilePath = exeDir + "output\\" + filename;
+    
+    // 记录详细参数信息
+    logFile << "Parameters loaded successfully:" << endl;
+    logFile << "  Particle properties:" << endl;
+    logFile << "    E0 = " << E0 << " MeV (rest energy)" << endl;
+    logFile << "    q = " << q << " e (charge)" << endl;
+    logFile << "    Ek = " << Ek << " MeV (kinetic energy)" << endl;
+    logFile << "    pa = " << pa << " degrees (pitch angle)" << endl;
+    logFile << "  Time parameters:" << endl;
+    logFile << "    dt = " << dt << " s (time step)" << endl;
+    logFile << "    t_ini = " << t_ini << " s (initial time)" << endl;
+    logFile << "    t_interval = " << t_interval << " s (simulation duration)" << endl;
+    logFile << "    write_interval = " << write_interval << " s (output interval)" << endl;
+    logFile << "  Spatial parameters:" << endl;
+    logFile << "    Initial position: [" << xgsm << ", " << ygsm << ", " << zgsm << "] RE" << endl;
+    logFile << "    atmosphere_altitude = " << atmosphere_altitude << " km" << endl;
+    logFile << "  Numerical parameters:" << endl;
+    logFile << "    t_step = " << t_step << " s (field time step)" << endl;
+    logFile << "    r_step = " << r_step << " RE (field spatial step)" << endl;
+    logFile << "Output file: " << outFilePath << endl;
+
     // Check if output directory exists, if not, create it
     #ifdef _WIN32
         string outputDir = exeDir + "output\\";
@@ -185,38 +221,40 @@ int singular_particle(const std::string& para_file)
     Vector3d B = Bvec(t_ini, xgsm, ygsm, zgsm);
     mu = adiabatic_1st(p, pa, E0, B.norm());
 
-    int write_step = static_cast<int>(write_interval / abs(dt)); // Write to file every N steps, can be adjusted as needed
-    long write_count = num_steps / write_step + 1;          // Calculate the number of writes
+    int write_step = static_cast<int>(write_interval / abs(dt));
+    long write_count = num_steps / write_step + 1;
+    
+    // 记录计算设置
+    logFile << "Simulation setup:" << endl;
+    logFile << "  Total momentum p = " << p << " MeV/c" << endl;
+    logFile << "  Parallel momentum p_para = " << p_para << " MeV/c" << endl;
+    logFile << "  Initial magnetic field |B| = " << B.norm() << " nT" << endl;
+    logFile << "  First adiabatic invariant mu = " << mu << " MeV/nT" << endl;
+    logFile << "  Simulation end time = " << t_end << " s" << endl;
+    logFile << "  Total integration steps = " << num_steps << endl;
+    logFile << "  Write every " << write_step << " steps" << endl;
+    logFile << "  Expected output records = " << write_count << endl;
     
     // Write the number of writes to the beginning of the file
     ofstream outfile(outFilePath, ios::binary | ios::trunc);
     if (!outfile)
     {
+        logFile << "ERROR: Failed to open output file: " << outFilePath << endl;
         cerr << "Failed to open output file: " + outFilePath << endl;
-        logFile << "Failed to open output file: " + outFilePath << endl;
         logFile.close();
         exit(1);
     }
     outfile.write(reinterpret_cast<const char *>(&write_count), sizeof(write_count));
 
     VectorXd Y(5);
-    Y << t_ini, xgsm, ygsm, zgsm, p_para; // Initialize Y vector
-    // Write the first set of data
+    Y << t_ini, xgsm, ygsm, zgsm, p_para;
     outfile.write(reinterpret_cast<const char *>(Y.data()), Y.size() * sizeof(double));
 
-    long actual_write_count = 1; // Already wrote the first set of data
+    long actual_write_count = 1;
 
     // Record start time
     auto start_time = std::chrono::high_resolution_clock::now();
-    
-    // 记录初始信息到日志
-    logFile << "Starting simulation with parameters:" << endl;
-    logFile << "dt = " << dt << ", E0 = " << E0 << ", q = " << q << endl;
-    logFile << "t_ini = " << t_ini << ", t_interval = " << t_interval << ", write_interval = " << write_interval << endl;
-    logFile << "Position: [" << xgsm << ", " << ygsm << ", " << zgsm << "]" << endl;
-    logFile << "Ek = " << Ek << ", pa = " << pa << ", atmosphere_altitude = " << atmosphere_altitude << endl;
-    logFile << "t_step = " << t_step << ", r_step = " << r_step << endl;
-    logFile << "num_steps = " << num_steps << ", write_step = " << write_step << endl;
+    logFile << "Starting integration loop..." << endl;
 
     for (long i = 1; i <= num_steps; ++i)
     {
@@ -232,17 +270,26 @@ int singular_particle(const std::string& para_file)
             outfile.write(reinterpret_cast<const char *>(Y.data()), Y.size() * sizeof(double));
             ++actual_write_count;
         }
-        // Output progress every 1% (只输出到日志，不输出到控制台)
+        
+        // 优化进度输出：只在10%倍数时输出，减少日志文件大小
         static int last_percent = -1;
         int percent = static_cast<int>(100.0 * i / num_steps);
-        if (percent != last_percent)
+        if (percent != last_percent && percent % 10 == 0)
         {
-            logFile << "Progress: " << percent << "% (" << i << " / " << num_steps << ")" << endl;
+            logFile << "Progress: " << percent << "% (" << i << " / " << num_steps << " steps)" << endl;
+            logFile << "  Current time: " << Y[0] << " s" << endl;
             last_percent = percent;
         }
-        if (sqrt(Y[1] * Y[1] + Y[2] * Y[2] + Y[3] * Y[3]) < (1.0 + atmosphere_altitude / 6371.0))
+        
+        // 检查是否到达大气层
+        double r_current = sqrt(Y[1] * Y[1] + Y[2] * Y[2] + Y[3] * Y[3]);
+        if (r_current < (1.0 + atmosphere_altitude / 6371.0))
         {
-            logFile << "Particle has reached the atmosphere (r < 1 RE). Stopping simulation." << endl;
+            logFile << "EARLY TERMINATION: Particle reached atmosphere at step " << i << endl;
+            logFile << "  Final time: " << Y[0] << " s" << endl;
+            logFile << "  Final position: [" << Y[1] << ", " << Y[2] << ", " << Y[3] << "] RE" << endl;
+            logFile << "  Distance from Earth: " << r_current << " RE" << endl;
+            logFile << "  Atmosphere threshold: " << (1.0 + atmosphere_altitude / 6371.0) << " RE" << endl;
             break;
         }
     }
@@ -250,7 +297,6 @@ int singular_particle(const std::string& para_file)
     // Record end time and output elapsed time
     auto end_time = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end_time - start_time;
-    logFile << "Total solving time: " << elapsed.count() << " seconds." << endl;
 
     // If the actual number of writes is less than the expected number, go back to the file header to modify the write count
     if (actual_write_count < write_count)
@@ -260,7 +306,32 @@ int singular_particle(const std::string& para_file)
         outfile.flush();
     }
     outfile.close();
-    logFile << "Output file saved to: " << outFilePath << endl;
+
+    // 获取结束时间戳
+    now = time(nullptr);
+    #ifdef _WIN32
+        localtime_s(&timeinfo, &now);
+    #else
+        localtime_r(&now, &timeinfo);
+    #endif
+    strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeinfo);
+
+    // 写入总结信息
+    logFile << "=== SIMULATION COMPLETED ===" << endl;
+    logFile << "Final state:" << endl;
+    logFile << "  Final time: " << Y[0] << " s" << endl;
+    logFile << "  Final position: [" << Y[1] << ", " << Y[2] << ", " << Y[3] << "] RE" << endl;
+    logFile << "  Final parallel momentum: " << Y[4] << " MeV/c" << endl;
+    logFile << "  Final distance from Earth: " << sqrt(Y[1]*Y[1] + Y[2]*Y[2] + Y[3]*Y[3]) << " RE" << endl;
+    logFile << "Performance statistics:" << endl;
+    logFile << "  Total integration time: " << elapsed.count() << " seconds" << endl;
+    logFile << "  Average time per step: " << (elapsed.count() / num_steps) << " seconds" << endl;
+    logFile << "  Expected writes: " << write_count << endl;
+    logFile << "  Actual writes: " << actual_write_count << endl;
+    logFile << "Output file: " << outFilePath << endl;
+    logFile << "Completion time: " << timeBuffer << endl;
+    logFile << "=== END OF SIMULATION LOG ===" << endl;
+    
     logFile.close();
     return 0;
 }
