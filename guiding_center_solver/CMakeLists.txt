@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(Solver)
+project(GuidingCenterSimulation)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -29,7 +29,6 @@ set_target_properties(geopack_caller PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
     PREFIX ""
-    # SUFFIX ".dll"
 )
 add_custom_command(TARGET geopack_caller POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E remove -f $<TARGET_LINKER_FILE:geopack_caller>

@@ -2,14 +2,14 @@
 
 ## Overview
 
-This project simulates the guiding center motion of collisionless plasma particles with conservation of the first adiabatic invariant. It supports various magnetic field models (via Geopack-2008), parameterized input, and batch simulation/diagnosis. In short: you can throw a bunch of particles into space and see what happens (numerically, of course).
+This project simulates the guiding center motion of collisionless plasma particles with conservation of the first adiabatic invariant. It is mainly intended for simulating high-energy particles in space environments, such as radiation belt particles. It supports various magnetic field models (via Geopack-2008), parameterized input, and batch simulation/diagnosis. In short: you can throw a bunch of particles into space and see what happens (numerically, of course).
 
 ---
 
 ## Directory Structure
 
 ```
-artificial_radiation_belt_guiding_center_simulation/
+guiding_center_simulation/
 ├─external                 # Third-party libraries and external codes
 │  └─Geopack-2008          # Geopack-2008 Fortran source for geomagnetic field models
 ├─guiding_center_solver    # Main C++ project for simulation and diagnostics
@@ -17,7 +17,6 @@ artificial_radiation_belt_guiding_center_simulation/
 │  ├─doc                   # Documentation for the solver
 │  ├─include               # C++ header files
 │  └─src                   # C++ source files
-├─input                    # (Optional) Global input files or data
 ├─Lab                      # Laboratory and example workspace
 │  └─Example               # Example cases and results
 │    ├─figures             # Output figures and plots
