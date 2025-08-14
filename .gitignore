@@ -9,4 +9,5 @@ example/test/
 *.png
 *.fig
 *.pdf
+*.dll
 test.bat

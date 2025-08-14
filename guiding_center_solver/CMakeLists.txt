@@ -17,13 +17,6 @@ set(SOLVER_SRC ${ALL_SRC})
 list(REMOVE_ITEM SOLVER_SRC ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp)
 add_executable(Solver ${SOLVER_SRC})
 
-# Diagnosor主程序（只编译Diagnosor.cpp和需要的其他文件）
-# set(DIAGNOSOR_SRC
-#     ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp
-#     ${CMAKE_SOURCE_DIR}/src/field_calculator.cpp
-#     ${CMAKE_SOURCE_DIR}/src/particle_calculator.cpp
-#     ${CMAKE_SOURCE_DIR}/src/geopack_caller.cpp
-# )
 set(DIAGNOSOR_SRC ${ALL_SRC})
 list(REMOVE_ITEM DIAGNOSOR_SRC ${CMAKE_SOURCE_DIR}/src/Solver.cpp)
 add_executable(Diagnosor ${DIAGNOSOR_SRC})
@@ -36,7 +29,7 @@ set_target_properties(geopack_caller PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
     PREFIX ""
-    SUFFIX ".dll"
+    # SUFFIX ".dll"
 )
 add_custom_command(TARGET geopack_caller POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E remove -f $<TARGET_LINKER_FILE:geopack_caller>
