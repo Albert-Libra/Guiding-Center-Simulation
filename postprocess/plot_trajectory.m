@@ -28,7 +28,7 @@ function plot_trajectory(filename)
     zlabel(ax1, 'Z (RE)');
     title(ax1, 'Guiding Center Trajectory');
 
-    plot_gsm_earth(ax1, datetime(t_val(1), 'ConvertFrom', 'posixtime'));
+    plot_gsm_earth(ax1, datetime(2020,1,1));
     % % plot earth
     % [xs, ys, zs] = sphere(100);
     % gray = 0.6 + 0.4 * tanh(xs/0.15); % x=0附近平滑过渡，范围约0.4~1
