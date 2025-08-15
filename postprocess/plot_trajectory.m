@@ -28,46 +28,7 @@ function plot_trajectory(filename)
     zlabel(ax1, 'Z (RE)');
     title(ax1, 'Guiding Center Trajectory');
 
-    plot_gsm_earth(ax1, datetime(2020,1,1));
-    % % plot earth
-    % [xs, ys, zs] = sphere(100);
-    % gray = 0.6 + 0.4 * tanh(xs/0.15); % x=0附近平滑过渡，范围约0.4~1
-    % faceColor = cat(3, gray, gray, gray);
-    % h = surf(ax1, xs, ys, zs, faceColor, 'FaceAlpha', 0.9, 'EdgeColor', 'none');
-
-    % % plot coastlines
-    % load coastlines %#ok<LOAD>
-    % xcst = cosd(coastlat).*cosd(coastlon);
-    % ycst = cosd(coastlat).*sind(coastlon);
-    % zcst = sind(coastlat);
-    
-    % % GEO to GSM conversion
-    % g = geopack();
-    % g.recalc(datetime(2020,1,1));
-
-    % xgsm_arr = zeros(size(xcst));
-    % ygsm_arr = zeros(size(ycst));
-    % zgsm_arr = zeros(size(zcst));
-
-    % for i = 1:length(xcst)
-    %     geo_coords = [xcst(i), ycst(i), zcst(i)];
-    %     gsm_coords = g.geogsm(geo_coords);
-    %     xgsm_arr(i) = gsm_coords(1);
-    %     ygsm_arr(i) = gsm_coords(2);
-    %     zgsm_arr(i) = gsm_coords(3);
-    % end
-    % g.unload();
-    
-
-    % plot3(ax1, xgsm_arr, ygsm_arr, zgsm_arr, 'Color', [0.65, 0.33, 0.1], 'LineWidth', 1.5);
-
-    % light(ax1,'Position',[1 0 1],'Style','infinite');
-    % lighting(ax1,'gouraud');
-    % set(h, 'FaceLighting', 'gouraud', ...
-    %     'AmbientStrength', 0.3, ...
-    %     'DiffuseStrength', 0.6, ...
-    %     'SpecularStrength', 1.0, ...
-    %     'SpecularExponent', 30);
+    plot_gsm_earth(ax1, datetime(t_val(1), 'ConvertFrom', 'posixtime'));
     
     box(ax1, 'on')
     set(ax1,"BoxStyle","full");

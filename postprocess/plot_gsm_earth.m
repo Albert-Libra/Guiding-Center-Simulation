@@ -5,6 +5,7 @@ function plot_gsm_earth(ax1, date, varargin)
     % Optional parameters:
     %   'transition_width': width of the transition region for darkening (default: 0.15)
     %   'darken_factor': factor to darken the color for xgsm < 0 (default: 0.4)
+    
     if nargin < 1
         error('At least one input argument (ax1) is required.');
     end
