@@ -31,16 +31,7 @@ guiding_center_simulation/
 
 ## Installation
 
-### 1. Compile Geopack-2008 Dynamic Link Library
-
-Geopack-2008 is a Fortran project for geomagnetic field calculation and coordinate transformation. On Windows, MSYS2 is your friend:
-
-```shell
-cd external/Geopack-2008
-gfortran -shared -fPIC -o Geopack-2008_dp.dll Geopack-2008_dp.for
-```
-
-### 2. Compile the C++ Main Program
+### 1. Compile the C++ Main Program
 
 Use CMake to build the project:
 
@@ -54,22 +45,33 @@ cmake --build .
 
 After building, executables (e.g., `Solver.exe`, `Diagnosor.exe`) will be in the `build/` directory if you are lucky enough.
 
+### 2. (Optional) Compile Geopack-2008 Dynamic Link Library
+
+Geopack-2008 is a Fortran project for geomagnetic field calculation and coordinate transformation. Cmake will help you to download and compile it. But you may want to know how to make it by yourself. On Windows, MSYS2 is your friend:
+
+```shell
+mkdir -p external/Geopack-2008
+cd external/Geopack-2008
+wget -O Geopack-2008_dp.for https://geo.phys.spbu.ru/~tsyganenko/models/Geopack-2008_dp.for
+gfortran -shared -fPIC -o Geopack-2008_dp.dll Geopack-2008_dp.for
+```
+
 ### 3. (Optional) Compile Geopack-2008 C++ DLL for Matlab/Postprocess
+
+Again, CMake might do this for you automatically. If not, you know what to do.
 
 ```shell
 cd guiding_center_solver/src
 g++ -shared -o ../postprocess/include/geopack_caller.dll geopack_caller.cpp -I../include/
 ```
 
-(CMake might do this for you automatically. If not, you know what to do.)
-
 ---
 
 ## Usage
 
-After building the executables, you can launch your simulation in a sub-directory in `./Lab`. Check out `./Lab/Example` for inspiration.
+After building the executables, you can launch your simulation in a sub-directory in `./Lab`. This sub-directory will be your workspace or your laboratory. Check out `./Lab/Example` for inspiration.
 
-1. Create an `input/` directory in your workspace. Put your `.para` files there—one for each particle you want to simulate. Or run `./postprocess/particle_initialize.m` if you like MATLAB and waiting.
+1. Create an `input/` directory in your workspace. Put your `.para` files there - one for each particle you want to simulate. Or run `./postprocess/particle_initialize.m` if you like MATLAB and waiting.
 2. Run `Solver.exe` in your workspace to start the simulation, then run `Diagnosor.exe` to calculate intermediate physical parameters. Results will appear in the `output/` directory. ([More information about simulation](./guiding_center_solver/doc/singular_particle.md))
 3. Use `./postprocess/read_gct.m` to convert simulation results to MATLAB variables, and `./postprocess/read_gcd.m` to read diagnostic info. After that, the universe is yours.
 

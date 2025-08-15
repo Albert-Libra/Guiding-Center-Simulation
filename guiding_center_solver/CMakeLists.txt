@@ -9,6 +9,36 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/include/eigen-3.4.0
 )
 
+# Download Geopack-2008 if not present
+include(FetchContent)
+FetchContent_Declare(
+    geopack-2008
+    URL https://geo.phys.spbu.ru/~tsyganenko/Geopack-2008_dp.for
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+set(GEOPACK_FORTRAN_PATH ${CMAKE_SOURCE_DIR}/../external/Geopack-2008/Geopack-2008_dp.for)
+if(NOT EXISTS ${GEOPACK_FORTRAN_PATH})
+    file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/../external/Geopack-2008)
+    FetchContent_Populate(geopack-2008)
+    file(COPY ${geopack-2008_SOURCE_DIR}/Geopack-2008_dp.for DESTINATION ${CMAKE_SOURCE_DIR}/../external/Geopack-2008)
+endif()
+
+# Compile Geopack-2008 Fortran library if gfortran is available
+find_program(GFORTRAN_EXECUTABLE gfortran)
+set(GEOPACK_DLL_PATH ${CMAKE_SOURCE_DIR}/../external/Geopack-2008/Geopack-2008_dp.dll)
+if(GFORTRAN_EXECUTABLE AND EXISTS ${GEOPACK_FORTRAN_PATH} AND NOT EXISTS ${GEOPACK_DLL_PATH})
+    message(STATUS "Compiling Geopack-2008 Fortran library...")
+    execute_process(
+        COMMAND ${GFORTRAN_EXECUTABLE} -shared -fPIC -o ${GEOPACK_DLL_PATH} ${GEOPACK_FORTRAN_PATH}
+        RESULT_VARIABLE GEOPACK_COMPILE_RESULT
+    )
+    if(NOT GEOPACK_COMPILE_RESULT EQUAL 0)
+        message(WARNING "Failed to compile Geopack-2008 Fortran library.")
+    else()
+        message(STATUS "Geopack-2008 Fortran library compiled successfully.")
+    endif()
+endif()
+
 # 查找所有cpp文件
 file(GLOB ALL_SRC src/*.cpp)
 
