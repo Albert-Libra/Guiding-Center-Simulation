@@ -56,7 +56,14 @@ end
 % Process each .gct file and save each figure
 for k = 1:length(gctFiles)
     gctFilePath = fullfile(output_path, gctFiles(k).name);
+
     plot_trajectory(gctFilePath);
+    % figure('Position', [100, 100, 1200, 500]);
+    % subplot(1, 2, 1);
+    % plot_trajectory(gctFilePath);
+    % subplot(1, 2, 2);
+    % plot_kinetic_energy(gctFilePath);
+
     [~, name, ~] = fileparts(gctFiles(k).name);
     saveas(gcf, fullfile(fig_folder, [name, '.png']));
     saveas(gcf, fullfile(fig_folder, [name, '.fig']));

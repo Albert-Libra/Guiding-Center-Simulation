@@ -8,6 +8,26 @@ function data = read_gcd(filename)
     %
     % Returns:
     %   data (struct): A structure containing simulation data fields as matrices.
+    %     - dt: Time step [s]
+    %     - E0: Initial energy [MeV]
+    %     - q: Charge [e]
+    %     - t_ini: Initial time [s] Epoch time
+    %     - t_interval: Time interval for writing data [s]
+    %     - write_interval: Interval for writing data [s]
+    %     - xgsm_ini: Initial X position in GSM coordinates [RE]
+    %     - ygsm_ini: Initial Y position in GSM coordinates [RE]
+    %     - zgsm_ini: Initial Z position in GSM coordinates [RE]
+    %     - Ek_ini: Initial kinetic energy [MeV]
+    %     - pa_ini: Initial parallel momentum [MeV*s/RE]
+    %     - atmosphere_altitude: Altitude for atmospheric model [km]
+    %     - t_step: Time step for the simulation [s]
+    %     - r_step: Radial step for the simulation [RE]
+    %     - write_count: Number of records written in the file
+    %     - t: Time vector (N-element vector) [s]
+    %     - gsm_pos: Position in GSM coordinates (Nx3 matrix) [RE]
+    %     - p_para: Parallel momentum (N-element vector) [RE*MeV/c]
+    %     - grad_B: Gradient of magnetic field (Nx3 matrix) [nT/RE]
+    %     - curv_B: Curvature of magnetic field (Nx3 matrix) [1/RE]
     %     - B: Magnetic field vector (Nx3 matrix) [nT]
     %     - E: Electric field vector (Nx3 matrix) [mV/m]
     %     - vd_ExB: Drift velocity due to ExB (Nx3 matrix) [RE/s]
@@ -31,34 +51,52 @@ function data = read_gcd(filename)
         error('Failed to open file %s', filename);
     end
 
-    % Read number of records
-    count = fread(fid, 1, 'int32');
-    if isempty(count)
+    % read the simulation parameters
+    para = fread(fid, 14, 'double')';
+    data.dt                 = para(1);
+    data.E0                 = para(2);
+    data.q                  = para(3);
+    data.t_ini              = para(4);
+    data.t_interval         = para(5);
+    data.write_interval     = para(6);
+    data.xgsm_ini           = para(7);
+    data.ygsm_ini           = para(8);
+    data.zgsm_ini           = para(9);
+    data.Ek_ini             = para(10);
+    data.pa_ini             = para(11);
+    data.atmosphere_altitude= para(12);
+    data.t_step             = para(13);
+    data.r_step             = para(14);
+
+    % read the number of records
+    write_count = fread(fid, 1, 'int32');
+    if isempty(write_count)
+        fclose(fid);
         error('File is empty or has an incorrect format');
     end
+    data.write_count = write_count;
 
-    % Number of items per record
-    % Order matches C++ writing: B(3), E(3), vd_ExB(3), vd_grad(3), vd_curv(3), v_para(3), gamm, dp_dt_1, dp_dt_2, dp_dt_3, pB_pt
-    num_vec = 6; % 6 three-dimensional vectors
-    vec_len = 3;
-    num_scalar = 5; % gamm, dp_dt_1, dp_dt_2, dp_dt_3, pB_pt
-    record_len = num_vec * vec_len + num_scalar; % 6*3+6=24
-
-    raw = fread(fid, [record_len, count], 'double')';
+    % read all the diagnostic data
+    record_len = 34;
+    raw = fread(fid, [record_len, write_count], 'double')';
     fclose(fid);
 
-    % Split data into fields
     idx = 1;
-    data.B        = raw(:, idx:idx+2); idx = idx+3;
-    data.E        = raw(:, idx:idx+2); idx = idx+3;
-    data.vd_ExB   = raw(:, idx:idx+2); idx = idx+3;
-    data.vd_grad  = raw(:, idx:idx+2); idx = idx+3;
-    data.vd_curv  = raw(:, idx:idx+2); idx = idx+3;
-    data.v_para   = raw(:, idx:idx+2); idx = idx+3;
-    data.gamm     = raw(:, idx);   idx = idx+1;
-    data.dp_dt_1  = raw(:, idx);   idx = idx+1;
-    data.dp_dt_2  = raw(:, idx);   idx = idx+1;
-    data.dp_dt_3  = raw(:, idx);   idx = idx+1;
-    data.pB_pt    = raw(:, idx);
+    data.t         = raw(:, idx); idx = idx+1;
+    data.gsm_pos   = raw(:, idx:idx+2); idx = idx+3;
+    data.p_para    = raw(:, idx); idx = idx+1;
+    data.B         = raw(:, idx:idx+2); idx = idx+3;
+    data.E         = raw(:, idx:idx+2); idx = idx+3;
+    data.grad_B    = raw(:, idx:idx+2); idx = idx+3;
+    data.curv_B    = raw(:, idx:idx+2); idx = idx+3;
+    data.vd_ExB    = raw(:, idx:idx+2); idx = idx+3;
+    data.vd_grad   = raw(:, idx:idx+2); idx = idx+3;
+    data.vd_curv   = raw(:, idx:idx+2); idx = idx+3;
+    data.v_para    = raw(:, idx:idx+2); idx = idx+3;
+    data.gamm      = raw(:, idx); idx = idx+1;
+    data.dp_dt_1   = raw(:, idx); idx = idx+1;
+    data.dp_dt_2   = raw(:, idx); idx = idx+1;
+    data.dp_dt_3   = raw(:, idx); idx = idx+1;
+    data.pB_pt     = raw(:, idx);
 
 end

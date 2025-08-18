@@ -101,6 +101,8 @@ int diagnose_gct(string filePath){
         ++idx;
     }
     para_in.close();
+
+    // calculate mu
     double mu;
     {
         double p = momentum(E0, Ek);
@@ -110,6 +112,7 @@ int diagnose_gct(string filePath){
         mu = adiabatic_1st(p, pa, E0, Bt);
     }
 
+    // file name for output
     char filename[256];
     snprintf(filename, sizeof(filename),
              "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f",
@@ -152,7 +155,15 @@ int diagnose_gct(string filePath){
         cerr << "Failed to open diagnostics file: " << diagFilePath << endl;
         exit(1);
     }
-    diag_out.write(reinterpret_cast<const char *>(&write_count), sizeof(write_count));
+    double para_array[14] = {dt, E0, q, t_ini, t_interval, write_interval,
+                         xgsm, ygsm, zgsm, Ek, pa, atmosphere_altitude, t_step, r_step};
+    diag_out.write(reinterpret_cast<const char*>(para_array), sizeof(para_array));
+
+    diag_out.write(reinterpret_cast<const char*>(&write_count), sizeof(write_count));
+
+    // Wring the diagnostic data
+    infile.clear();
+    infile.seekg(sizeof(write_count), ios::beg); // Skip the write_count
     
     // Write log header with timestamp
     time_t now = time(nullptr);
@@ -174,7 +185,6 @@ int diagnose_gct(string filePath){
     // Record start time
     auto start_time = std::chrono::high_resolution_clock::now();
     VectorXd Y(5);
-    
     for (long i = 0; i < write_count; ++i) {
         infile.read(reinterpret_cast<char*>(Y.data()), Y.size() * sizeof(double));
         if (infile.gcount() != Y.size() * sizeof(double)) {
@@ -186,6 +196,7 @@ int diagnose_gct(string filePath){
         double x = Y[1];
         double y = Y[2];
         double z = Y[3];
+        double gsm_pos[3] = {Y[1], Y[2], Y[3]};
         double p_para = Y[4];
 
         Vector3d B = Bvec(t, x, y, z);
@@ -218,18 +229,28 @@ int diagnose_gct(string filePath){
         double dp_dt = dp_dt_1 + dp_dt_2 + dp_dt_3;
 
         double pB_pt = pBpt(t, x, y, z, t_step);
-
-        diag_out.write(reinterpret_cast<const char*>(B.data()), 3 * sizeof(double));
-        diag_out.write(reinterpret_cast<const char*>(E.data()), 3 * sizeof(double));
-        diag_out.write(reinterpret_cast<const char*>(vd_ExB.data()), 3 * sizeof(double));
-        diag_out.write(reinterpret_cast<const char*>(vd_grad.data()), 3 * sizeof(double));
-        diag_out.write(reinterpret_cast<const char*>(vd_curv.data()), 3 * sizeof(double));
-        diag_out.write(reinterpret_cast<const char*>(v_para.data()), 3 * sizeof(double));
-        diag_out.write(reinterpret_cast<const char*>(&gamm), sizeof(gamm));
-        diag_out.write(reinterpret_cast<const char*>(&dp_dt_1), sizeof(dp_dt_1));
-        diag_out.write(reinterpret_cast<const char*>(&dp_dt_2), sizeof(dp_dt_2));
-        diag_out.write(reinterpret_cast<const char*>(&dp_dt_3), sizeof(dp_dt_3));
-        diag_out.write(reinterpret_cast<const char*>(&pB_pt), sizeof(pB_pt));
+        
+        double record[34];
+        int idx = 0;
+        record[idx++] = t;                // 1
+        record[idx++] = gsm_pos[0];       // 2
+        record[idx++] = gsm_pos[1];       // 3
+        record[idx++] = gsm_pos[2];       // 4
+        record[idx++] = p_para;           // 5
+        for (int j = 0; j < 3; ++j) record[idx++] = B[j];         // 6-8
+        for (int j = 0; j < 3; ++j) record[idx++] = E[j];         // 9-11
+        for (int j = 0; j < 3; ++j) record[idx++] = grad_B[j];    // 12-14
+        for (int j = 0; j < 3; ++j) record[idx++] = curv_B[j];    // 15-17
+        for (int j = 0; j < 3; ++j) record[idx++] = vd_ExB[j];    // 18-20
+        for (int j = 0; j < 3; ++j) record[idx++] = vd_grad[j];   // 21-23
+        for (int j = 0; j < 3; ++j) record[idx++] = vd_curv[j];   // 24-26
+        for (int j = 0; j < 3; ++j) record[idx++] = v_para[j];    // 27-29
+        record[idx++] = gamm;             // 30
+        record[idx++] = dp_dt_1;          // 31
+        record[idx++] = dp_dt_2;          // 32
+        record[idx++] = dp_dt_3;          // 33
+        record[idx++] = pB_pt;            // 34
+        diag_out.write(reinterpret_cast<const char*>(record), sizeof(record));
 
         // Optimized progress output: only output at multiples of 10% to reduce log file size
         static int last_percent = -1;

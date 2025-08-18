@@ -113,7 +113,7 @@ Binary file storing the simulated guiding center trajectory for a particle. Havi
 **Structure:**
 - `long` (8 bytes): Number of records (N)
 - N records, each record is 5 doubles:
-    - `t`      : time [s]
+    - `t`      : Epoch time [s]
     - `x_gsm`  : GSM X position [RE]
     - `y_gsm`  : GSM Y position [RE]
     - `z_gsm`  : GSM Z position [RE]
@@ -121,25 +121,33 @@ Binary file storing the simulated guiding center trajectory for a particle. Havi
 
 ---
 
-### 3. `.gcd` Diagnostic Output File
+### 3. `.gcd` Diagnostic
 
-Binary file storing diagnostic physical quantities along the trajectory. Having the same filename with `.para` file.
+If you’re curious about more than just where your particles went, let `Diagnosor.exe` do the heavy lifting: it generates this binary file, packed with diagnostic physical quantities along the trajectory - same name as your `.para` file, but with a lot more secrets inside.
 
 **Structure:**
+- 14 × `double`: Simulation parameters (dt, E0, q, t_ini, t_interval, write_interval, xgsm, ygsm, zgsm, Ek, pa, atmosphere_altitude, t_step, r_step)
 - `long` (8 bytes): Number of records (N)
-- For each record (corresponds to one trajectory point), the following are stored in order (all double):
+- For each record (corresponds to one trajectory point), the following are stored in order (all `double`, total 35 per record):
 
-    1. `B` (3)         : Magnetic field vector [nT]
-    2. `E` (3)         : Electric field vector [mV/m]
-    3. `vd_ExB` (3)    : ExB drift velocity [RE/s]
-    4. `vd_grad` (3)   : Gradient drift velocity [RE/s]
-    5. `vd_curv` (3)   : Curvature drift velocity [RE/s]
-    6. `v_para` (3)    : Parallel velocity [RE/s]
-    7. `gamma` (1)     : Lorentz factor
-    8. `dp_dt_1` (1)   : First term of parallel momentum change rate
-    9. `dp_dt_2` (1)   : Second term of parallel momentum change rate
-    10. `dp_dt_3` (1)  : Third term of parallel momentum change rate
-    11. `pB_pt` (1)    : Betatron acceleration term
+    | Index | Name         | Size | Description                                 | Unit         |
+    |-------|--------------|------|---------------------------------------------|--------------|
+    | 1     | `t`          | 1    | Epoch time                                  | s            |
+    | 2     | `gsm_pos`    | 3    | GSM position                                | RE           |
+    | 3     | `p_para`     | 1    | Parallel momentum                           | MeV·s/RE     |
+    | 4     | `B`          | 3    | Magnetic field vector                       | nT           |
+    | 5     | `E`          | 3    | Electric field vector                       | mV/m         |
+    | 6     | `grad_B`     | 3    | Gradient of magnetic field                  | nT/RE        |
+    | 7     | `curv_B`     | 3    | Curvature of magnetic field                 | 1/RE         |
+    | 8     | `vd_ExB`     | 3    | ExB drift velocity                          | RE/s         |
+    | 9     | `vd_grad`    | 3    | Gradient drift velocity                     | RE/s         |
+    | 10    | `vd_curv`    | 3    | Curvature drift velocity                    | RE/s         |
+    | 11    | `v_para`     | 3    | Parallel velocity                           | RE/s         |
+    | 12    | `gamm`       | 1    | Lorentz factor                              | -            |
+    | 13    | `dp_dt_1`    | 1    | First term of parallel momentum change rate | MeV/RE       |
+    | 14    | `dp_dt_2`    | 1    | Second term of parallel momentum change rate| MeV/RE       |
+    | 15    | `dp_dt_3`    | 1    | Third term of parallel momentum change rate | MeV/RE       |
+    | 16    | `pB_pt`      | 1    | Betatron acceleration term                  | nT/s         |
 
 ---
 
