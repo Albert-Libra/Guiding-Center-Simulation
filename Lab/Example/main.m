@@ -42,9 +42,9 @@ end
 
 %% Search for .gct files in the output folder
 output_path = '.\output\';
-gctFiles = dir([output_path, '*.gct']);
-if isempty(gctFiles)
-    error('No .gct files found in the output directory.');
+gcdFiles = dir([output_path, '*.gcd']);
+if isempty(gcdFiles)
+    error('No .gcd files found in the output directory.');
 end
 
 % Create figures folder if it doesn't exist
@@ -54,17 +54,17 @@ if ~exist(fig_folder, 'dir')
 end
 
 % Process each .gct file and save each figure
-for k = 1:length(gctFiles)
-    gctFilePath = fullfile(output_path, gctFiles(k).name);
+for k = 1:length(gcdFiles)
+    gcdFilePath = fullfile(output_path, gcdFiles(k).name);
 
-    plot_trajectory(gctFilePath);
-    % figure('Position', [100, 100, 1200, 500]);
-    % subplot(1, 2, 1);
-    % plot_trajectory(gctFilePath);
-    % subplot(1, 2, 2);
-    % plot_kinetic_energy(gctFilePath);
+    % plot_trajectory(gcdFilePath);
+    figure('Position', [100, 100, 1200, 500]);
+    subplot(1, 2, 1);
+    plot_trajectory(gcdFilePath);
+    subplot(1, 2, 2);
+    plot_kinetic_energy(gcdFilePath);
 
-    [~, name, ~] = fileparts(gctFiles(k).name);
+    [~, name, ~] = fileparts(gcdFiles(k).name);
     saveas(gcf, fullfile(fig_folder, [name, '.png']));
     saveas(gcf, fullfile(fig_folder, [name, '.fig']));
     close(gcf);

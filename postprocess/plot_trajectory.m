@@ -1,14 +1,14 @@
-function plot_trajectory(filename)
-    % plot_trajectory - Plots the trajectory and gamma of particles from the .gct file.
+function plot_trajectory(gcdFilePath)
+    % plot_trajectory - Plots the trajectory and gamma of particles from the .gcd file.
     
-    [~, t_val, x_val, y_val, z_val, ~] = read_gct(filename);
-    gcd_data = read_gcd(strrep(filename, '.gct', '.gcd'));
+    ax1 = gca;
+    
+    gcd_data = read_gcd(gcdFilePath);
+    t_val = gcd_data.t;
+    x_val = gcd_data.gsm_pos(:, 1);
+    y_val = gcd_data.gsm_pos(:, 2);
+    z_val = gcd_data.gsm_pos(:, 3);
 
-    figure('Position', [100, 100, 1200, 500]);
-    tlo = tiledlayout(1,2,'TileSpacing','compact','Padding','compact');
-
-    % ====== panel 1: guiding center trajectory ======
-    ax1 = nexttile(tlo,1);
     hold(ax1, 'on');
     set(ax1, 'BoxStyle', 'full');
     cmap = jet(256);
@@ -34,23 +34,5 @@ function plot_trajectory(filename)
     set(ax1,"BoxStyle","full");
     view(ax1, [230 30]);
     hold(ax1, 'off');
-
-    % ====== panel 2: gamma - t ======
-    ax2 = nexttile(tlo,2);
-    t_datetime = datetime(t_val, 'ConvertFrom', 'posixtime'); % epoch time to datetime
-    plot(ax2, t_datetime, gcd_data.gamm, 'b-', 'LineWidth', 1.5);
-    xlabel(ax2, 'time');
-    ylabel(ax2, '\gamma');
-    title(ax2, '\gamma vs t');
-    grid(ax2, 'on');
-    box(ax2, 'on');
-
-    % time formatting
-    ax2.XTickLabel = datestr(ax2.XTick, 'MM:SS');
-    date_str = datestr(t_datetime(1), 'yyyy-mm-dd');
-    yl = ylim(ax2);
-    xl = xlim(ax2);
-    text(ax2, xl(1), yl(1) - 0.05*(yl(2)-yl(1)), date_str, ...
-        'HorizontalAlignment', 'left', 'VerticalAlignment', 'top', 'FontSize', 10);
 
 end
