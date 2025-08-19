@@ -5,7 +5,6 @@
 #include <sstream>
 #include <Eigen/Dense>
 #include <chrono>
-#include <process.h> // Windows process creation API
 
 #include "field_calculator.h"
 #include "particle_calculator.h"

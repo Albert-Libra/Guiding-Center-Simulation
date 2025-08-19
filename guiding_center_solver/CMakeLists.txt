@@ -10,17 +10,14 @@ include_directories(
 )
 
 # Download Geopack-2008 if not present
-include(FetchContent)
-FetchContent_Declare(
-    geopack-2008
-    URL https://geo.phys.spbu.ru/~tsyganenko/Geopack-2008_dp.for
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
 set(GEOPACK_FORTRAN_PATH ${CMAKE_SOURCE_DIR}/../external/Geopack-2008/Geopack-2008_dp.for)
 if(NOT EXISTS ${GEOPACK_FORTRAN_PATH})
     file(MAKE_DIRECTORY ${CMAKE_SOURCE_DIR}/../external/Geopack-2008)
-    FetchContent_Populate(geopack-2008)
-    file(COPY ${geopack-2008_SOURCE_DIR}/Geopack-2008_dp.for DESTINATION ${CMAKE_SOURCE_DIR}/../external/Geopack-2008)
+    file(DOWNLOAD
+        https://geo.phys.spbu.ru/~tsyganenko/Geopack-2008_dp.for
+        ${GEOPACK_FORTRAN_PATH}
+        SHOW_PROGRESS
+    )
 endif()
 
 # 平台相关设置
