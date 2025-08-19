@@ -6,10 +6,19 @@
 #include <Eigen/Dense>
 #include <chrono>
 #include <thread>
-#include <libloaderapi.h>
-#include <io.h>
-#include <direct.h>
-#include <process.h> // Windows process creation API
+
+#ifdef _WIN32
+    #include <libloaderapi.h>
+    #include <io.h>
+    #include <direct.h>
+    #include <process.h>
+#else
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <dirent.h>
+    #include <sys/types.h>
+    #include <sys/wait.h>
+#endif
 
 #include "field_calculator.h"
 #include "particle_calculator.h"
@@ -56,26 +65,27 @@ int main(int argc, char* argv[])
         if (stat(logDir.c_str(), &st_log) == -1) {mkdir(logDir.c_str(), 0755);}
     #endif
     
-    // Read all .para files in exeDir
+    // Read all .para files in exeDir/input
     vector<string> para_files;
 #ifdef _WIN32
-    string search_path = exeDir + "\\input\\*.para";
+    string search_path = exeDir + "input\\*.para";
     struct _finddata_t fileinfo;
     intptr_t handle = _findfirst(search_path.c_str(), &fileinfo);
     if (handle != -1) {
         do {
-            para_files.push_back(exeDir +"input\\"+ fileinfo.name);
+            para_files.push_back(exeDir + "input\\" + fileinfo.name);
         } while (_findnext(handle, &fileinfo) == 0);
         _findclose(handle);
     }
 #else
-    DIR* dir = opendir(exeDir.c_str());
+    string inputDir = exeDir + "input/";
+    DIR* dir = opendir(inputDir.c_str());
     if (dir) {
         struct dirent* entry;
         while ((entry = readdir(dir)) != nullptr) {
             string fname = entry->d_name;
             if (fname.size() > 5 && fname.substr(fname.size() - 5) == ".para") {
-                para_files.push_back(exeDir + fname);
+                para_files.push_back(inputDir + fname);
             }
         }
         closedir(dir);

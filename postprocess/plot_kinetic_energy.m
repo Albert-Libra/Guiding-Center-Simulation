@@ -19,12 +19,12 @@ function plot_kinetic_energy(gcdFilePath)
     ax1.XGrid = 'on';
     ax1.GridAlpha = 0.3;
 
-    % 设置刻度仅显示分秒
-    ax1.XAxis.TickLabelFormat = 'mm:ss'; % 只显示分秒
-    ax1.XAxis.Exponent = 0; % 禁止科学计数法
+    % set x-axis to show time in mm:ss format
+    ax1.XAxis.TickLabelFormat = 'mm:ss';
+    ax1.XAxis.Exponent = 0;
     ax1.XAxis.Label.Interpreter = 'none';
 
-    % 在左下角显示完整日期
+    % display the date of the first time point
     date_str = datestr(min(t_datetime), 'yyyy-mm-dd');
     yl = ylim(ax1);
     xl = xlim(ax1);

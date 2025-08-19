@@ -6,9 +6,15 @@
 #include <Eigen/Dense>
 #include <chrono>
 #include <thread>
-#include <libloaderapi.h>
-#include <io.h>
-#include <direct.h>
+
+#ifdef _WIN32
+    #include <libloaderapi.h>
+    #include <io.h>
+    #include <direct.h>
+#else
+    #include <sys/stat.h>
+    #include <unistd.h>
+#endif
 
 #include "singular_particle.h"
 #include "field_calculator.h"
@@ -94,17 +100,24 @@ VectorXd dydt(const VectorXd& arr_in)
 
 int singular_particle(const std::string& para_file)
 {
-    // Check if log directory exists, if not, create it
+    // 1. 目录分隔符和创建
     #ifdef _WIN32
         string logDir = exeDir + "log\\";
         if (_access(logDir.c_str(), 0) != 0) {_mkdir(logDir.c_str());}
+        string outputDir = exeDir + "output\\";
+        if (_access(outputDir.c_str(), 0) != 0) _mkdir(outputDir.c_str());
+        string sep = "\\";
     #else
         string logDir = exeDir + "log/";
         struct stat st_log = {0};
         if (stat(logDir.c_str(), &st_log) == -1) {mkdir(logDir.c_str(), 0755);}
+        string outputDir = exeDir + "output/";
+        struct stat st = {0};
+        if (stat(outputDir.c_str(), &st) == -1) mkdir(outputDir.c_str(), 0755);
+        string sep = "/";
     #endif
 
-    // Create a log file in exeDir\log with the same name as para_file but .log extension
+    // 2. 日志文件路径
     size_t last_slash = para_file.find_last_of("\\/");
     string para_filename = (last_slash == string::npos) ? para_file : para_file.substr(last_slash + 1);
     size_t dot_pos = para_filename.find_last_of('.');
@@ -116,7 +129,7 @@ int singular_particle(const std::string& para_file)
         exit(1);
     }
 
-    // write log header information with timestamp
+    // 3. 时间戳
     time_t now = time(nullptr);
     char timeBuffer[80];
     struct tm timeinfo;
@@ -176,12 +189,12 @@ int singular_particle(const std::string& para_file)
     }
     para_in.close();
 
-    // Create output file name based on input parameters
+    // 4. 输出文件路径
     char filename[256];
     snprintf(filename, sizeof(filename),
              "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f.gct",
             E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
-    string outFilePath = exeDir + "output\\" + filename;
+    string outFilePath = exeDir + "output" + sep + filename;
     
     // log the detailed parameters
     logFile << "Parameters loaded successfully:" << endl;
@@ -202,16 +215,6 @@ int singular_particle(const std::string& para_file)
     logFile << "    t_step = " << t_step << " s (field time step)" << endl;
     logFile << "    r_step = " << r_step << " RE (field spatial step)" << endl;
     logFile << "Output file: " << outFilePath << endl;
-
-    // Check if output directory exists, if not, create it
-    #ifdef _WIN32
-        string outputDir = exeDir + "output\\";
-        if (_access(outputDir.c_str(), 0) != 0) _mkdir(outputDir.c_str());
-    #else
-        string outputDir = exeDir + "output/";
-        struct stat st = {0};
-        if (stat(outputDir.c_str(), &st) == -1) mkdir(outputDir.c_str(), 0755);
-    #endif
 
     // pre-parameter calculations
     double t_end = t_ini + t_interval*abs(dt)/dt;

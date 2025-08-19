@@ -8,6 +8,8 @@ function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
     %   z_val      : array of GSM z positions, [RE]
     %   p_para_val : array of parallel momentum values, [MeV*s/RE]
     
+    disp(['Reading GCT file: ', fullfile(pwd, filename),' ...']);
+
     fid = fopen(filename, 'rb');
     if fid < 0
         error('Failed to open file %s', filename);
@@ -35,5 +37,7 @@ function [count, t_val, x_val, y_val, z_val, p_para_val] = read_gct(filename)
     y_val      = data(:,3);
     z_val      = data(:,4);
     p_para_val = data(:,5);
+    
+    disp('Finished reading GCT file.');
     
 end

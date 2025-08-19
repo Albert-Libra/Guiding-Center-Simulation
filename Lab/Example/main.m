@@ -1,10 +1,11 @@
 clear
 close all
-addpath('..\..\postprocess\');
-input_path = '.\input\';
+addpath(fullfile('..', '..', 'postprocess'));
+input_path = fullfile('.', 'input');
 
 % Delete all files in the output folder
-output_files = dir(fullfile('.\output\', '*'));
+output_dir = fullfile('.', 'output');
+output_files = dir(fullfile(output_dir, '*'));
 for i = 1:length(output_files)
     if ~output_files(i).isdir
         delete(fullfile(output_files(i).folder, output_files(i).name));
@@ -12,37 +13,43 @@ for i = 1:length(output_files)
 end
 
 % Check if there are any .para files in the input folder
-paraFiles = dir([input_path, '*.para']);
+paraFiles = dir(fullfile(input_path, '*.para'));
 if isempty(paraFiles)
     input_path_full = fullfile(pwd, input_path, filesep);
     particle_initialize(input_path_full);
 end
 
-%% Check if Solver.exe exists in the current directory
-if ~isfile('Solver.exe')
-    error('Solver.exe not found in the current directory. Copy it from guiding_center_solver\build\');
+%% Check if Solver executable exists in the current directory
+if ispc
+    solver_exe = 'Solver.exe';
+    diagnosor_exe = 'Diagnosor.exe';
+else
+    solver_exe = './Solver';
+    diagnosor_exe = './Diagnosor';
 end
 
-% Run Solver.exe
-status = system('Solver.exe');
+if ~isfile(solver_exe)
+    error('%s not found in the current directory. Copy it from guiding_center_solver/build/', solver_exe);
+end
+
+% Run Solver
+status = system(solver_exe);
 if status ~= 0
-    error('Failed to execute Solver.exe');
+    error('Failed to execute %s', solver_exe);
 end
 
-%% Check if Diagnosor.exe exists in the current directory
-if ~isfile('Diagnosor.exe')
-    error('Diagnosor.exe not found in the current directory. Copy it from guiding_center_solver\build\');
+if ~isfile(diagnosor_exe)
+    error('%s not found in the current directory. Copy it from guiding_center_solver/build/', diagnosor_exe);
 end
 
-% Run Diagnosor.exe
-status = system('Diagnosor.exe');
+% Run Diagnosor
+status = system(diagnosor_exe);
 if status ~= 0
-    error('Failed to execute Diagnosor.exe');
+    error('Failed to execute %s', diagnosor_exe);
 end
 
-%% Search for .gct files in the output folder
-output_path = '.\output\';
-gcdFiles = dir([output_path, '*.gcd']);
+%% Search for .gcd files in the output folder
+gcdFiles = dir(fullfile(output_dir, '*.gcd'));
 if isempty(gcdFiles)
     error('No .gcd files found in the output directory.');
 end
@@ -53,11 +60,10 @@ if ~exist(fig_folder, 'dir')
     mkdir(fig_folder);
 end
 
-% Process each .gct file and save each figure
+% Process each .gcd file and save each figure
 for k = 1:length(gcdFiles)
-    gcdFilePath = fullfile(output_path, gcdFiles(k).name);
+    gcdFilePath = fullfile(output_dir, gcdFiles(k).name);
 
-    % plot_trajectory(gcdFilePath);
     figure('Position', [100, 100, 1200, 500]);
     subplot(1, 2, 1);
     plot_trajectory(gcdFilePath);

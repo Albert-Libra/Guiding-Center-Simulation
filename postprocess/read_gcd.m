@@ -46,6 +46,8 @@ function data = read_gcd(filename)
     % Notes:
     %   - The specific fields and their formats depend on the version of the .gcd file !
 
+    disp(['Reading GCD file: ', fullfile(pwd, filename),' ...']);
+
     fid = fopen(filename, 'rb');
     if fid < 0
         error('Failed to open file %s', filename);
@@ -98,5 +100,7 @@ function data = read_gcd(filename)
     data.dp_dt_2   = raw(:, idx); idx = idx+1;
     data.dp_dt_3   = raw(:, idx); idx = idx+1;
     data.pB_pt     = raw(:, idx);
+
+    disp('Finished reading GCD file.');
 
 end
