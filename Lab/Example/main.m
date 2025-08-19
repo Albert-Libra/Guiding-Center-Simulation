@@ -33,6 +33,14 @@ if ~isfile(solver_exe)
 end
 
 % Run Solver
+if isunix
+    % 获取系统 libstdc++.so.6 路径
+    [~, sys_libstdcpp] = system('ldconfig -p | grep libstdc++.so.6 | head -n1 | awk ''{print $NF}''');
+    sys_libstdcpp = strtrim(sys_libstdcpp);
+    if exist(sys_libstdcpp, 'file')
+        setenv('LD_PRELOAD', sys_libstdcpp);
+    end
+end
 status = system(solver_exe);
 if status ~= 0
     error('Failed to execute %s', solver_exe);
