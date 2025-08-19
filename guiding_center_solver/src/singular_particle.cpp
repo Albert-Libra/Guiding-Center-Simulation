@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include <chrono>
 #include <thread>
+#include <cstdint> // 添加头文件
 
 #ifdef _WIN32
     #include <libloaderapi.h>
@@ -218,14 +219,14 @@ int singular_particle(const std::string& para_file)
 
     // pre-parameter calculations
     double t_end = t_ini + t_interval*abs(dt)/dt;
-    long num_steps = static_cast<long>((t_end - t_ini) / dt);
+    int32_t num_steps = static_cast<int32_t>((t_end - t_ini) / dt); // 用int32_t替换long
     double p = momentum(E0, Ek);
     double p_para = p * cos(pa * M_PI / 180.0);
     Vector3d B = Bvec(t_ini, xgsm, ygsm, zgsm);
     mu = adiabatic_1st(p, pa, E0, B.norm());
 
     int write_step = static_cast<int>(write_interval / abs(dt));
-    long write_count = num_steps / write_step + 1;
+    int32_t write_count = num_steps / write_step + 1; // 用int64_t替换long
     
     // log the simulation setup
     logFile << "Simulation setup:" << endl;
@@ -247,19 +248,19 @@ int singular_particle(const std::string& para_file)
         logFile.close();
         exit(1);
     }
-    outfile.write(reinterpret_cast<const char *>(&write_count), sizeof(write_count));
+    outfile.write(reinterpret_cast<const char *>(&write_count), sizeof(int32_t)); // 明确写入8字节
 
     VectorXd Y(5);
     Y << t_ini, xgsm, ygsm, zgsm, p_para;
     outfile.write(reinterpret_cast<const char *>(Y.data()), Y.size() * sizeof(double));
 
-    long actual_write_count = 1;
+    int32_t actual_write_count = 1; // 用int32_t替换long
 
     // Record start time
     auto start_time = std::chrono::high_resolution_clock::now();
     logFile << "Starting integration loop..." << endl;
 
-    for (long i = 1; i <= num_steps; ++i)
+    for (int32_t i = 1; i <= num_steps; ++i) // 用int64_t替换long
     {
         // Runge-Kutta 4th order integration
         VectorXd k1 = dydt(Y);
@@ -304,7 +305,7 @@ int singular_particle(const std::string& para_file)
     if (actual_write_count < write_count)
     {
         outfile.seekp(0, ios::beg);
-        outfile.write(reinterpret_cast<const char *>(&actual_write_count), sizeof(actual_write_count));
+        outfile.write(reinterpret_cast<const char *>(&actual_write_count), sizeof(int32_t)); 
         outfile.flush();
     }
     outfile.close();

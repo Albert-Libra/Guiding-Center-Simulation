@@ -5,6 +5,7 @@
 #include <sstream>
 #include <Eigen/Dense>
 #include <chrono>
+#include <cstdint> // 添加头文件
 
 #include "field_calculator.h"
 #include "particle_calculator.h"
@@ -146,7 +147,7 @@ int diagnose_gct(string filePath){
         exit(1);
     }
     // Read the number of records
-    long write_count;
+    int32_t write_count; // 用int32_t替换long
     infile.read(reinterpret_cast<char*>(&write_count), sizeof(write_count));
     if (infile.gcount() != sizeof(write_count)) {
         cerr << "Failed to read write count from file: " << outFilePath << endl;
@@ -189,7 +190,7 @@ int diagnose_gct(string filePath){
     // Record start time
     auto start_time = std::chrono::high_resolution_clock::now();
     VectorXd Y(5);
-    for (long i = 0; i < write_count; ++i) {
+    for (int32_t i = 0; i < write_count; ++i) { // 用int32_t替换long
         infile.read(reinterpret_cast<char*>(Y.data()), Y.size() * sizeof(double));
         if (infile.gcount() != Y.size() * sizeof(double)) {
             cerr << "Failed to read record " << i << " from file: " << outFilePath << endl;

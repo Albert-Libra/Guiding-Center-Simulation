@@ -1,28 +1,28 @@
 clear
 close all
-addpath('..\..\postprocess\');
+addpath(fullfile('..', '..', 'postprocess'));
 
 %% example of using geopack model
-% ³õÊ¼»¯
+% ï¿½ï¿½Ê¼ï¿½ï¿½
 g = geopack();
 
-% ÉèÖÃÊ±¼ä (¶àÖÖ·½Ê½)
-g.recalc(2020, 1, 0, 0, 0);  % Äê¡¢ÈÕ¡¢Ê±¡¢·Ö¡¢Ãë
-g.recalc(datetime(2020,1,1));  % datetime¶ÔÏó
-g.recalc(1577836800);  % POSIXÊ±¼ä´Á
+% ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ (ï¿½ï¿½ï¿½Ö·ï¿½Ê½)
+g.recalc(2020, 1, 0, 0, 0);  % ï¿½ê¡¢ï¿½Õ¡ï¿½Ê±ï¿½ï¿½ï¿½Ö¡ï¿½ï¿½ï¿½
+g.recalc(datetime(2020,1,1));  % datetimeï¿½ï¿½ï¿½ï¿½
+g.recalc(1577836800);  % POSIXÊ±ï¿½ï¿½ï¿½
 
-% ¼ÆËãIGRF´Å³¡ (¶àÖÖ·½Ê½)
-bxyz = g.igrf_gsm(6, 0, 0);  % µ¥¶À´«Èëx,y,z
-disp(['IGRF´Å³¡ @ (6,0,0) Re: Bx=', num2str(bxyz(1)), ' nT, By=', num2str(bxyz(2)), ' nT, Bz=', num2str(bxyz(3)), ' nT']);
-bxyz = g.igrf_gsm([0, 0, 6]);  % ´«ÈëÎ»ÖÃÏòÁ¿
-disp(['IGRF´Å³¡ @ (0,0,6) Re: Bx=', num2str(bxyz(1)), ' nT, By=', num2str(bxyz(2)), ' nT, Bz=', num2str(bxyz(3)), ' nT']);
+% ï¿½ï¿½ï¿½ï¿½IGRFï¿½Å³ï¿½ (ï¿½ï¿½ï¿½Ö·ï¿½Ê½)
+bxyz = g.igrf_gsm(6, 0, 0);  % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½x,y,z
+disp(['IGRFï¿½Å³ï¿½ @ (6,0,0) Re: Bx=', num2str(bxyz(1)), ' nT, By=', num2str(bxyz(2)), ' nT, Bz=', num2str(bxyz(3)), ' nT']);
+bxyz = g.igrf_gsm([0, 0, 6]);  % ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+disp(['IGRFï¿½Å³ï¿½ @ (0,0,6) Re: Bx=', num2str(bxyz(1)), ' nT, By=', num2str(bxyz(2)), ' nT, Bz=', num2str(bxyz(3)), ' nT']);
 
-% ×ø±ê×ª»» (¶àÖÖ·½Ê½)
-gsm_coords = g.geogsm(1, 0, 0);  % µ¥¶À´«Èëx,y,z
+% ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ (ï¿½ï¿½ï¿½Ö·ï¿½Ê½)
+gsm_coords = g.geogsm(1, 0, 0);  % ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½x,y,z
 disp(['GEO->GSM @ (1,0,0) Re: Xg=', num2str(gsm_coords(1)), ' Re, Yg=', num2str(gsm_coords(2)), ' Re, Zg=', num2str(gsm_coords(3)), ' Re']);
-gsm_coords = g.geogsm([0, 1, 0]);  % ´«ÈëÎ»ÖÃÏòÁ¿
+gsm_coords = g.geogsm([0, 1, 0]);  % ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 disp(['GEO->GSM @ (0,1,0) Re: Xg=', num2str(gsm_coords(1)), ' Re, Yg=', num2str(gsm_coords(2)), ' Re, Zg=', num2str(gsm_coords(3)), ' Re']);
 
-% Ê¹ÓÃÍê±ÏºóĞ¶ÔØ¿â
+% Ê¹ï¿½ï¿½ï¿½ï¿½Ïºï¿½Ğ¶ï¿½Ø¿ï¿½
 g.unload();
 clear g;

@@ -63,7 +63,7 @@ if isempty(gcdFiles)
 end
 
 % Create figures folder if it doesn't exist
-fig_folder = 'figures';
+fig_folder = fullfile(pwd, 'figures');
 if ~exist(fig_folder, 'dir')
     mkdir(fig_folder);
 end
