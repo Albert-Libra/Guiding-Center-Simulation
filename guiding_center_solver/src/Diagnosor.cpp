@@ -266,7 +266,7 @@ int diagnose_gct(string filePath){
         }
 
         // Record abnormal values (optional)
-        if (gamm > 100 || isnan(gamm) || isinf(gamm)) {
+        if (gamm > 100 || std :: isnan(gamm) || std :: isinf(gamm)) {
             logFile << "WARNING: Unusual gamma value " << gamm << " at record " << i
                     << ", position [" << x << ", " << y << ", " << z << "]" << endl;
         }

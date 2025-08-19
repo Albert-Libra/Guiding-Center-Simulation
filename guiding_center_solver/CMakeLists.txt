@@ -81,6 +81,8 @@ set_target_properties(geopack_caller PROPERTIES
 # 链接动态库时，Linux需要链接dl库
 if(UNIX)
     target_link_libraries(geopack_caller dl)
+    target_link_libraries(Solver dl)
+    target_link_libraries(Diagnosor dl)
 endif()
 
 # add_custom_command(TARGET geopack_caller POST_BUILD
