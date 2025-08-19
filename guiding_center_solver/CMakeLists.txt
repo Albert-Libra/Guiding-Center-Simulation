@@ -83,6 +83,6 @@ if(UNIX)
     target_link_libraries(geopack_caller dl)
 endif()
 
-add_custom_command(TARGET geopack_caller POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove -f $<TARGET_LINKER_FILE:geopack_caller>
-)
+# add_custom_command(TARGET geopack_caller POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E remove -f $<TARGET_LINKER_FILE:geopack_caller>
+# )
