@@ -1,5 +1,4 @@
-external/
-example/test/
+# external/
 .vscode/
 *.exe
 *.gcd
@@ -11,3 +10,6 @@ example/test/
 *.pdf
 *.dll
 *.so
+*.a
+Solver
+Diagnosor
