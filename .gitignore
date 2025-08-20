@@ -10,4 +10,4 @@ example/test/
 *.fig
 *.pdf
 *.dll
-test.bat
+*.so

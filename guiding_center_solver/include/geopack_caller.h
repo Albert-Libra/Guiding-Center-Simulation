@@ -15,5 +15,12 @@ void recalc(int* year, int* day, int* hour, int* min, double* sec,
 GEOPACK_API
 void igrf_gsm(double* x, double* y, double* z, double* bx, double* by, double* bz);
 
+// dipole_gsm函数，功能与DLL/SO中的dip_08_一致
+GEOPACK_API
+void dipole_gsm(double* x, double* y, double* z, double* bx, double* by, double* bz);
+
 GEOPACK_API
 void geogsm(double* xgeo, double* ygeo, double* zgeo, double* xgsm, double* ygsm, double* zgsm, int* J);
+
+GEOPACK_API
+void smgsm(double* xsm, double* ysm, double* zsm, double* xgsm, double* ygsm, double* zgsm, int* J);

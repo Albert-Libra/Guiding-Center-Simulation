@@ -1,18 +1,21 @@
 #ifdef _WIN32
     #include <windows.h>
+    typedef HMODULE LibHandle;
+    #define LOAD_LIB(path) LoadLibraryA(path)
+    #define GET_PROC(lib, name) GetProcAddress(lib, name)
+    #define GEOPACK_LIB_PATH "../../external/Geopack-2008/Geopack-2008_dp.dll"
 #else
     #include <dlfcn.h>
+    typedef void* LibHandle;
+    #define LOAD_LIB(path) dlopen(path, RTLD_LAZY)
+    #define GET_PROC(lib, name) dlsym(lib, name)
+    #define GEOPACK_LIB_PATH "../../external/Geopack-2008/libgeopack2008.so"
 #endif
+
 #include <iostream>
 #include "geopack_caller.h"
 
-#ifdef _WIN32
-    static HMODULE lib_geopack = nullptr;
-    #define GEOPACK_LIB_PATH "../../external/Geopack-2008/Geopack-2008_dp.dll"
-#else
-    static void* lib_geopack = nullptr;
-    #define GEOPACK_LIB_PATH "../../external/Geopack-2008/libgeopack2008.so"
-#endif
+static LibHandle lib_geopack = nullptr;
 
 // Recalc
 extern "C"
@@ -22,35 +25,18 @@ __declspec(dllexport)
 void recalc(int* year, int* day, int* hour, int* min, double* sec,
             double* vgsex, double* vgsey, double* vgsez)
 {
-#ifdef _WIN32
     typedef void (*recalc_08_t)(int*, int*, int*, int*, double*, double*, double*, double*);
     static recalc_08_t recalc_08_ = nullptr;
-#else
-    typedef void (*recalc_08_t)(int*, int*, int*, int*, double*, double*, double*, double*);
-    static recalc_08_t recalc_08_ = nullptr;
-#endif
 
     if (!lib_geopack) {
-#ifdef _WIN32
-        lib_geopack = LoadLibraryA(GEOPACK_LIB_PATH);
+        lib_geopack = LOAD_LIB(GEOPACK_LIB_PATH);
         if (!lib_geopack) {
-            std::cerr << "Failed to load Geopack DLL in recalc." << std::endl;
+            std::cerr << "Failed to load Geopack library in recalc." << std::endl;
             return;
         }
-#else
-        lib_geopack = dlopen(GEOPACK_LIB_PATH, RTLD_LAZY);
-        if (!lib_geopack) {
-            std::cerr << "Failed to load Geopack SO in recalc: " << dlerror() << std::endl;
-            return;
-        }
-#endif
     }
     if (!recalc_08_) {
-#ifdef _WIN32
-        recalc_08_ = (recalc_08_t)GetProcAddress(lib_geopack, "recalc_08_");
-#else
-        recalc_08_ = (recalc_08_t)dlsym(lib_geopack, "recalc_08_");
-#endif
+        recalc_08_ = (recalc_08_t)GET_PROC(lib_geopack, "recalc_08_");
         if (!recalc_08_) {
             std::cerr << "Failed to get recalc_08_ from library." << std::endl;
             return;
@@ -66,41 +52,51 @@ __declspec(dllexport)
 #endif
 void igrf_gsm(double* x, double* y, double* z, double* bx, double* by, double* bz)
 {
-#ifdef _WIN32
     typedef void (*igrf_gsw_08_t)(double*, double*, double*, double*, double*, double*);
     static igrf_gsw_08_t igrf_gsw_08_ = nullptr;
-#else
-    typedef void (*igrf_gsw_08_t)(double*, double*, double*, double*, double*, double*);
-    static igrf_gsw_08_t igrf_gsw_08_ = nullptr;
-#endif
 
     if (!lib_geopack) {
-#ifdef _WIN32
-        lib_geopack = LoadLibraryA(GEOPACK_LIB_PATH);
+        lib_geopack = LOAD_LIB(GEOPACK_LIB_PATH);
         if (!lib_geopack) {
-            std::cerr << "Failed to load Geopack DLL in igrf_gsm." << std::endl;
+            std::cerr << "Failed to load Geopack library in igrf_gsm." << std::endl;
             return;
         }
-#else
-        lib_geopack = dlopen(GEOPACK_LIB_PATH, RTLD_LAZY);
-        if (!lib_geopack) {
-            std::cerr << "Failed to load Geopack SO in igrf_gsm: " << dlerror() << std::endl;
-            return;
-        }
-#endif
     }
     if (!igrf_gsw_08_) {
-#ifdef _WIN32
-        igrf_gsw_08_ = (igrf_gsw_08_t)GetProcAddress(lib_geopack, "igrf_gsw_08_");
-#else
-        igrf_gsw_08_ = (igrf_gsw_08_t)dlsym(lib_geopack, "igrf_gsw_08_");
-#endif
+        igrf_gsw_08_ = (igrf_gsw_08_t)GET_PROC(lib_geopack, "igrf_gsw_08_");
         if (!igrf_gsw_08_) {
             std::cerr << "Failed to get igrf_gsw_08_ from library." << std::endl;
             return;
         }
     }
     igrf_gsw_08_(x, y, z, bx, by, bz);
+}
+
+// dipole field model
+extern "C"
+#ifdef _WIN32
+__declspec(dllexport)
+#endif
+void dipole_gsm(double* x, double* y, double* z, double* bx, double* by, double* bz)
+{
+    typedef void (*dip_08_t)(double*, double*, double*, double*, double*, double*);
+    static dip_08_t dip_08_ = nullptr;
+
+    if (!lib_geopack) {
+        lib_geopack = LOAD_LIB(GEOPACK_LIB_PATH);
+        if (!lib_geopack) {
+            std::cerr << "Failed to load Geopack library in dipole." << std::endl;
+            return;
+        }
+    }
+    if (!dip_08_) {
+        dip_08_ = (dip_08_t)GET_PROC(lib_geopack, "dip_08_");
+        if (!dip_08_) {
+            std::cerr << "Failed to get dipole_08_ from library." << std::endl;
+            return;
+        }
+    }
+    dip_08_(x, y, z, bx, by, bz);
 }
 
 // GEO <-> GSM conversion
@@ -110,39 +106,49 @@ __declspec(dllexport)
 #endif
 void geogsm(double* xgeo, double* ygeo, double* zgeo, double* xgsm, double* ygsm, double* zgsm, int* J)
 {
-#ifdef _WIN32
     typedef void (*geogsw_08_t)(double*, double*, double*, double*, double*, double*, int*);
     static geogsw_08_t geogsw_08_ = nullptr;
-#else
-    typedef void (*geogsw_08_t)(double*, double*, double*, double*, double*, double*, int*);
-    static geogsw_08_t geogsw_08_ = nullptr;
-#endif
 
     if (!lib_geopack) {
-#ifdef _WIN32
-        lib_geopack = LoadLibraryA(GEOPACK_LIB_PATH);
+        lib_geopack = LOAD_LIB(GEOPACK_LIB_PATH);
         if (!lib_geopack) {
-            std::cerr << "Failed to load Geopack DLL in geogsm." << std::endl;
+            std::cerr << "Failed to load Geopack library in geogsm." << std::endl;
             return;
         }
-#else
-        lib_geopack = dlopen(GEOPACK_LIB_PATH, RTLD_LAZY);
-        if (!lib_geopack) {
-            std::cerr << "Failed to load Geopack SO in geogsm: " << dlerror() << std::endl;
-            return;
-        }
-#endif
     }
     if (!geogsw_08_) {
-#ifdef _WIN32
-        geogsw_08_ = (geogsw_08_t)GetProcAddress(lib_geopack, "geogsw_08_");
-#else
-        geogsw_08_ = (geogsw_08_t)dlsym(lib_geopack, "geogsw_08_");
-#endif
+        geogsw_08_ = (geogsw_08_t)GET_PROC(lib_geopack, "geogsw_08_");
         if (!geogsw_08_) {
             std::cerr << "Failed to get geogsw_08_ from library." << std::endl;
             return;
         }
     }
     geogsw_08_(xgeo, ygeo, zgeo, xgsm, ygsm, zgsm, J);
+}
+
+// SM <-> GSM conversion
+extern "C"
+#ifdef _WIN32
+__declspec(dllexport)
+#endif
+void smgsm(double* xsm, double* ysm, double* zsm, double* xgsm, double* ygsm, double* zgsm, int* J)
+{
+    typedef void (*smgsw_08_t)(double*, double*, double*, double*, double*, double*, int*);
+    static smgsw_08_t smgsw_08_ = nullptr;
+
+    if (!lib_geopack) {
+        lib_geopack = LOAD_LIB(GEOPACK_LIB_PATH);
+        if (!lib_geopack) {
+            std::cerr << "Failed to load Geopack library in smgsm." << std::endl;
+            return;
+        }
+    }
+    if (!smgsw_08_) {
+        smgsw_08_ = (smgsw_08_t)GET_PROC(lib_geopack, "smgsw_08_");
+        if (!smgsw_08_) {
+            std::cerr << "Failed to get smgsw_08_ from library." << std::endl;
+            return;
+        }
+    }
+    smgsw_08_(xsm, ysm, zsm, xgsm, ygsm, zgsm, J);
 }

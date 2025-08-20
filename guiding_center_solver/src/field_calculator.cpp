@@ -4,6 +4,7 @@
 #include <Eigen/Dense>
 #include "geopack_caller.h"
 #include "field_calculator.h"
+#include "magnetic_field_models.h"
 
 using namespace std;
 using namespace Eigen;
@@ -11,25 +12,10 @@ using namespace Eigen;
 // calculate the magnetic field vector in GSM coordinates
 // IGRF model for this version
 Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
-    // t is epoch time in seconds, convert it to year, day, hour, minute, second
-    time_t epoch_time = static_cast<time_t>(t);
-    tm* time_info = gmtime(&epoch_time);
-
-    int IYEAR = time_info->tm_year + 1900; // tm_year is years since 1900
-    int IDAY = time_info->tm_yday + 1; // tm_yday is 0-based, so add 1
-    int IHOUR = time_info->tm_hour;
-    int MIN = time_info->tm_min;
-    double ISEC = static_cast<double>(time_info->tm_sec);
-
-    double vgsex = -400.0, vgsey = 0.0, vgsez = 0.0; // GSW coordinates are reduced to GSM at this condition
-    recalc(&IYEAR, &IDAY, &IHOUR, &MIN, &ISEC, &vgsex, &vgsey, &vgsez);
-
-    double Bx, By, Bz;
-
-    double xgsm_local = xgsm, ygsm_local = ygsm, zgsm_local = zgsm;
-    igrf_gsm(&xgsm_local, &ygsm_local, &zgsm_local, &Bx, &By, &Bz);
-
-    return Vector3d(Bx, By, Bz);
+    // // t is epoch time in seconds, convert it to year, day, hour, minute, second
+    
+    // return igrf_bg(t, xgsm, ygsm, zgsm);
+    return dipole_bg(t, xgsm, ygsm, zgsm);
 }
 
 // calculate the gradient and curvature of Bvec

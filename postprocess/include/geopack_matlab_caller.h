@@ -15,9 +15,14 @@ EXPORT void recalc(
 EXPORT void igrf_gsm(
     double* x, double* y, double* z, double* bx, double* by, double* bz);
 
+EXPORT void dipole_gsm(
+    double* x, double* y, double* z, double* bx, double* by, double* bz);
+
 EXPORT void geogsm(
     double* xgeo, double* ygeo, double* zgeo, double* xgsm, double* ygsm, double* zgsm, int* J);
 
+EXPORT void smgsm(
+    double* xsm, double* ysm, double* zsm, double* xgsm, double* ygsm, double* zgsm, int* J);
 #ifdef __cplusplus
 }
 #endif
