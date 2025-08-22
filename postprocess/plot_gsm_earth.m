@@ -98,8 +98,9 @@ function plot_gsm_earth(ax1, date, varargin)
     %     ygsm_arr(i) = gsm_coords(2);
     %     zgsm_arr(i) = gsm_coords(3);
     % end
-    % g.unload();
     
     % plot3(ax1, xgsm_arr, ygsm_arr, zgsm_arr, 'Color', [1,1,1], 'LineWidth', 1);
+    
+    g.unload();
 
 end

@@ -4,9 +4,7 @@
 #include "poloidal_simple_harmonic_wave.h"
 #include <iostream>
 
-
 namespace simple_pol_wave {
-
 
 using namespace std;
 using namespace Eigen;
@@ -15,7 +13,7 @@ const double E0 = 5; // Electric field amplitude in mV/m
 const double omega = 2 * M_PI * 0.1; // wave frequency in rad/s
 const int m = 1; // azimuthal mode number
 const int n = 2; // harmonic number of the standing wave.
-const double L_width = 0.2; // Gaussian width in L-shells
+const double L_width = 0.5; // Gaussian width in L-shells
 const double L0 = 1.4; // reference L-shell
 const double RE = 1.0; // unit: [RE]
 

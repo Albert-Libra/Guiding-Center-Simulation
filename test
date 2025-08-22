@@ -11,6 +11,6 @@ cp guiding_center_solver/build/Diagnosor Lab/Example/
 rm -rf Lab/Example/output/*
 rm -rf Lab/Example/log/*
 
-cd Lab/Example
-./Solver
-./Diagnosor
+# cd Lab/Example
+# ./Solver
+# ./Diagnosor

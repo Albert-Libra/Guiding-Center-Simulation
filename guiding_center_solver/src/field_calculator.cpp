@@ -13,17 +13,25 @@ using namespace Eigen;
 //calculate the electric field vector in GSM coordinates
 Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
     
-    // return Vector3d(0.0, 0.0, 0.0);
-    return simple_pol_wave::E_wave(t, xgsm, ygsm, zgsm);
+    // No electric field
+    return Vector3d(0.0, 0.0, 0.0);
+
+    // // Simple poloidal standing harmonic wave electric field
+    // return simple_pol_wave::E_wave(t, xgsm, ygsm, zgsm);
 }
 
 // calculate the magnetic field vector in GSM coordinates
 Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
-    // // t is epoch time in seconds, convert it to year, day, hour, minute, second
     
+    // // IGRF magnetic field model
     // return igrf_bg(t, xgsm, ygsm, zgsm);
+
+    // Dipole magnetic field model
     // return dipole_bg(t, xgsm, ygsm, zgsm);
-    return dipole_bg(t, xgsm, ygsm, zgsm) + simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
+    return dipole_bg(1577836800, xgsm, ygsm, zgsm);
+
+    // // Dipole + Simple poloidal standing harmonic wave magnetic field
+    // return dipole_bg(t, xgsm, ygsm, zgsm) + simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
 }
 
 // calculate the gradient and curvature of Bvec

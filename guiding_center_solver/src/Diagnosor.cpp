@@ -9,6 +9,8 @@
 
 #include "field_calculator.h"
 #include "particle_calculator.h"
+#include "geopack_caller.h"
+
 #ifdef _WIN32
     #include <process.h>
     #include <libloaderapi.h>
@@ -204,6 +206,26 @@ int diagnose_gct(string filePath){
         double gsm_pos[3] = {Y[1], Y[2], Y[3]};
         double p_para = Y[4];
 
+        // Convert GSM coordinates to SM coordinates
+        time_t epoch_time = static_cast<time_t>(t);
+        tm* time_info = gmtime(&epoch_time);
+        int IYEAR = time_info->tm_year + 1900;
+        int IDAY = time_info->tm_yday + 1;
+        int IHOUR = time_info->tm_hour;
+        int MIN = time_info->tm_min;
+        double ISEC = static_cast<double>(time_info->tm_sec);
+
+        double vgsex = -400.0, vgsey = 0.0, vgsez = 0.0;
+        recalc(&IYEAR, &IDAY, &IHOUR, &MIN, &ISEC, &vgsex, &vgsey, &vgsez);
+        double xsm, ysm, zsm;
+        int J = -1; // 1: SM->GSM, -1: GSM->SM
+        smgsm(&xsm, &ysm, &zsm, &x, &y, &z, &J);
+        double sm_pos[3] = {xsm, ysm, zsm};
+        double MLAT = atan2(zsm, sqrt(xsm*xsm + ysm*ysm)) * 180.0 / M_PI;
+        double MLT = acos(xsm / sqrt(xsm*xsm + ysm*ysm)) * 12.0 / M_PI * (ysm < 0 ? -1 : 1) + 12.0 ; 
+        double L = sqrt(xsm*xsm + ysm*ysm + zsm*zsm) / pow(cos(MLAT*M_PI/180),2); 
+
+        // Calculate the field
         Vector3d B = Bvec(t, x, y, z);
         double Bt = B.norm();
         if (Bt < 1e-10) {
@@ -235,26 +257,30 @@ int diagnose_gct(string filePath){
 
         double pB_pt = pBpt(t, x, y, z, t_step);
 
-        double record[34];
+        double record[40];
         int idx = 0;
         record[idx++] = t;                // 1
         record[idx++] = gsm_pos[0];       // 2
         record[idx++] = gsm_pos[1];       // 3
         record[idx++] = gsm_pos[2];       // 4
         record[idx++] = p_para;           // 5
-        for (int j = 0; j < 3; ++j) record[idx++] = B[j];         // 6-8
-        for (int j = 0; j < 3; ++j) record[idx++] = E[j];         // 9-11
-        for (int j = 0; j < 3; ++j) record[idx++] = grad_B[j];    // 12-14
-        for (int j = 0; j < 3; ++j) record[idx++] = curv_B[j];    // 15-17
-        for (int j = 0; j < 3; ++j) record[idx++] = vd_ExB[j];    // 18-20
-        for (int j = 0; j < 3; ++j) record[idx++] = vd_grad[j];   // 21-23
-        for (int j = 0; j < 3; ++j) record[idx++] = vd_curv[j];   // 24-26
-        for (int j = 0; j < 3; ++j) record[idx++] = v_para[j];    // 27-29
-        record[idx++] = gamm;             // 30
-        record[idx++] = dp_dt_1;          // 31
-        record[idx++] = dp_dt_2;          // 32
-        record[idx++] = dp_dt_3;          // 33
-        record[idx++] = pB_pt;            // 34
+        for (int j = 0; j < 3; ++j) record[idx++] = sm_pos[j]; // 6-8
+        record[idx++] = MLAT;            // 9
+        record[idx++] = MLT;             // 10
+        record[idx++] = L;               // 11
+        for (int j = 0; j < 3; ++j) record[idx++] = B[j];         // 12-14
+        for (int j = 0; j < 3; ++j) record[idx++] = E[j];         // 15-17
+        for (int j = 0; j < 3; ++j) record[idx++] = grad_B[j];    // 18-20
+        for (int j = 0; j < 3; ++j) record[idx++] = curv_B[j];    // 21-23
+        for (int j = 0; j < 3; ++j) record[idx++] = vd_ExB[j];    // 24-26
+        for (int j = 0; j < 3; ++j) record[idx++] = vd_grad[j];   // 27-29
+        for (int j = 0; j < 3; ++j) record[idx++] = vd_curv[j];   // 30-32
+        for (int j = 0; j < 3; ++j) record[idx++] = v_para[j];    // 33-35
+        record[idx++] = gamm;             // 36
+        record[idx++] = dp_dt_1;          // 37
+        record[idx++] = dp_dt_2;          // 38
+        record[idx++] = dp_dt_3;          // 39
+        record[idx++] = pB_pt;            // 40
         diag_out.write(reinterpret_cast<const char*>(record), sizeof(record));
 
         // only output at multiples of 10% to reduce log file size

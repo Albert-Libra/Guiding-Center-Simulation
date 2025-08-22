@@ -128,26 +128,30 @@ If you’re curious about more than just where your particles went, let `Diagnos
 **Structure:**
 - 14 × `double`: Simulation parameters (dt, E0, q, t_ini, t_interval, write_interval, xgsm, ygsm, zgsm, Ek, pa, atmosphere_altitude, t_step, r_step)
 - `long` (8 bytes): Number of records (N)
-- For each record (corresponds to one trajectory point), the following are stored in order (all `double`, total 35 per record):
+- For each record (corresponds to one trajectory point), the following are stored in order (all `double`, total 40 per record):
 
     | Index | Name         | Size | Description                                 | Unit         |
     |-------|--------------|------|---------------------------------------------|--------------|
     | 1     | `t`          | 1    | Epoch time                                  | s            |
     | 2     | `gsm_pos`    | 3    | GSM position                                | RE           |
     | 3     | `p_para`     | 1    | Parallel momentum                           | MeV·s/RE     |
-    | 4     | `B`          | 3    | Magnetic field vector                       | nT           |
-    | 5     | `E`          | 3    | Electric field vector                       | mV/m         |
-    | 6     | `grad_B`     | 3    | Gradient of magnetic field                  | nT/RE        |
-    | 7     | `curv_B`     | 3    | Curvature of magnetic field                 | 1/RE         |
-    | 8     | `vd_ExB`     | 3    | ExB drift velocity                          | RE/s         |
-    | 9     | `vd_grad`    | 3    | Gradient drift velocity                     | RE/s         |
-    | 10    | `vd_curv`    | 3    | Curvature drift velocity                    | RE/s         |
-    | 11    | `v_para`     | 3    | Parallel velocity                           | RE/s         |
-    | 12    | `gamm`       | 1    | Lorentz factor                              | -            |
-    | 13    | `dp_dt_1`    | 1    | First term of parallel momentum change rate | MeV/RE       |
-    | 14    | `dp_dt_2`    | 1    | Second term of parallel momentum change rate| MeV/RE       |
-    | 15    | `dp_dt_3`    | 1    | Third term of parallel momentum change rate | MeV/RE       |
-    | 16    | `pB_pt`      | 1    | Betatron acceleration term                  | nT/s         |
+    | 4     | `sm_pos`     | 3    | SM position                                 | RE           |
+    | 5     | `MLAT`       | 1    | Magnetic latitude                           | deg          |
+    | 6     | `MLT`        | 1    | Magnetic local time                         | hours        |
+    | 7     | `L`          | 1    | L-shell parameter                           | RE           |
+    | 8     | `B`          | 3    | Magnetic field vector                       | nT           |
+    | 9     | `E`          | 3    | Electric field vector                       | mV/m         |
+    | 10    | `grad_B`     | 3    | Gradient of magnetic field                  | nT/RE        |
+    | 11    | `curv_B`     | 3    | Curvature of magnetic field                 | 1/RE         |
+    | 12    | `vd_ExB`     | 3    | ExB drift velocity                          | RE/s         |
+    | 13    | `vd_grad`    | 3    | Gradient drift velocity                     | RE/s         |
+    | 14    | `vd_curv`    | 3    | Curvature drift velocity                    | RE/s         |
+    | 15    | `v_para`     | 3    | Parallel velocity                           | RE/s         |
+    | 16    | `gamm`       | 1    | Lorentz factor                              | -            |
+    | 17    | `dp_dt_1`    | 1    | First term of parallel momentum change rate | MeV/RE       |
+    | 18    | `dp_dt_2`    | 1    | Second term of parallel momentum change rate| MeV/RE       |
+    | 19    | `dp_dt_3`    | 1    | Third term of parallel momentum change rate | MeV/RE       |
+    | 20    | `pB_pt`      | 1    | Betatron acceleration term                  | nT/s         |
 
 ---
 

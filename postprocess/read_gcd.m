@@ -25,11 +25,15 @@ function data = read_gcd(filename)
     %     - write_count: Number of records written in the file
     %     - t: Time vector (N-element vector) [s]
     %     - gsm_pos: Position in GSM coordinates (Nx3 matrix) [RE]
-    %     - p_para: Parallel momentum (N-element vector) [RE*MeV/c]
-    %     - grad_B: Gradient of magnetic field (Nx3 matrix) [nT/RE]
-    %     - curv_B: Curvature of magnetic field (Nx3 matrix) [1/RE]
+    %     - p_para: Parallel momentum (N-element vector) [s*MeV/RE]
+    %     - sm_pos: Position in SM coordinates (Nx3 matrix) [RE]
+    %     - MLAT: Magnetic latitude (N-element vector) [deg]
+    %     - MLT: Magnetic local time (N-element vector) [hours]
+    %     - L: L-shell parameter (N-element vector) [RE]
     %     - B: Magnetic field vector (Nx3 matrix) [nT]
     %     - E: Electric field vector (Nx3 matrix) [mV/m]
+    %     - grad_B: Gradient of magnetic field (Nx3 matrix) [nT/RE]
+    %     - curv_B: Curvature of magnetic field (Nx3 matrix) [1/RE]
     %     - vd_ExB: Drift velocity due to ExB (Nx3 matrix) [RE/s]
     %     - vd_grad: Gradient drift velocity (Nx3 matrix) [RE/s]
     %     - vd_curv: Curvature drift velocity (Nx3 matrix) [RE/s]
@@ -79,27 +83,31 @@ function data = read_gcd(filename)
     data.write_count = write_count;
 
     % read all the diagnostic data
-    record_len = 34;
+    record_len = 40;
     raw = fread(fid, [record_len, write_count], 'double')';
     fclose(fid);
 
     idx = 1;
-    data.t         = raw(:, idx); idx = idx+1;
-    data.gsm_pos   = raw(:, idx:idx+2); idx = idx+3;
-    data.p_para    = raw(:, idx); idx = idx+1;
-    data.B         = raw(:, idx:idx+2); idx = idx+3;
-    data.E         = raw(:, idx:idx+2); idx = idx+3;
-    data.grad_B    = raw(:, idx:idx+2); idx = idx+3;
-    data.curv_B    = raw(:, idx:idx+2); idx = idx+3;
-    data.vd_ExB    = raw(:, idx:idx+2); idx = idx+3;
-    data.vd_grad   = raw(:, idx:idx+2); idx = idx+3;
-    data.vd_curv   = raw(:, idx:idx+2); idx = idx+3;
-    data.v_para    = raw(:, idx:idx+2); idx = idx+3;
-    data.gamm      = raw(:, idx); idx = idx+1;
-    data.dp_dt_1   = raw(:, idx); idx = idx+1;
-    data.dp_dt_2   = raw(:, idx); idx = idx+1;
-    data.dp_dt_3   = raw(:, idx); idx = idx+1;
-    data.pB_pt     = raw(:, idx);
+    data.t         = raw(:, idx); idx = idx+1;                % 1
+    data.gsm_pos   = raw(:, idx:idx+2); idx = idx+3;          % 2-4
+    data.p_para    = raw(:, idx); idx = idx+1;                % 5
+    data.sm_pos    = raw(:, idx:idx+2); idx = idx+3;          % 6-8
+    data.MLAT      = raw(:, idx); idx = idx+1;                % 9
+    data.MLT       = raw(:, idx); idx = idx+1;                % 10
+    data.L         = raw(:, idx); idx = idx+1;                % 11
+    data.B         = raw(:, idx:idx+2); idx = idx+3;          % 12-14
+    data.E         = raw(:, idx:idx+2); idx = idx+3;          % 15-17
+    data.grad_B    = raw(:, idx:idx+2); idx = idx+3;          % 18-20
+    data.curv_B    = raw(:, idx:idx+2); idx = idx+3;          % 21-23
+    data.vd_ExB    = raw(:, idx:idx+2); idx = idx+3;          % 24-26
+    data.vd_grad   = raw(:, idx:idx+2); idx = idx+3;          % 27-29
+    data.vd_curv   = raw(:, idx:idx+2); idx = idx+3;          % 30-32
+    data.v_para    = raw(:, idx:idx+2); idx = idx+3;          % 33-35
+    data.gamm      = raw(:, idx); idx = idx+1;                % 36
+    data.dp_dt_1   = raw(:, idx); idx = idx+1;                % 37
+    data.dp_dt_2   = raw(:, idx); idx = idx+1;                % 38
+    data.dp_dt_3   = raw(:, idx); idx = idx+1;                % 39
+    data.pB_pt     = raw(:, idx);                             % 40
 
     disp('Finished reading GCD file.');
 

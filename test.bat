@@ -8,6 +8,6 @@ copy guiding_center_solver\build\*.exe Lab\Example\
 del /q /f Lab\Example\log\*.*
 del /q /f Lab\Example\output\*.*
 
-cd Lab\Example
-.\Solver.exe
-.\Diagnosor.exe
+@REM cd Lab\Example
+@REM .\Solver.exe
+@REM .\Diagnosor.exe
