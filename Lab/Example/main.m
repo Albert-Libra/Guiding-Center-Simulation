@@ -34,7 +34,7 @@ end
 
 % Run Solver
 if isunix
-    % 获取系统 libstdc++.so.6 路径
+    % 获取系统 libstdc++.so.6 �?�?
     [~, sys_libstdcpp] = system('ldconfig -p | grep libstdc++.so.6 | head -n1 | awk ''{print $NF}''');
     sys_libstdcpp = strtrim(sys_libstdcpp);
     if exist(sys_libstdcpp, 'file')
@@ -77,6 +77,7 @@ for k = 1:length(gcdFiles)
     plot_trajectory(gcdFilePath);
     subplot(1, 2, 2);
     plot_kinetic_energy(gcdFilePath);
+    xtickformat('mm:ss');
 
     [~, name, ~] = fileparts(gcdFiles(k).name);
     saveas(gcf, fullfile(fig_folder, [name, '.png']));

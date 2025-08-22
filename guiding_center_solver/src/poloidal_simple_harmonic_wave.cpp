@@ -10,7 +10,7 @@ using namespace std;
 using namespace Eigen;
 
 const double E0 = 5; // Electric field amplitude in mV/m
-const double omega = 2 * M_PI * 0.1; // wave frequency in rad/s
+const double omega = 2 * M_PI * 0.16591; // wave frequency in rad/s
 const int m = 1; // azimuthal mode number
 const int n = 2; // harmonic number of the standing wave.
 const double L_width = 0.5; // Gaussian width in L-shells
