@@ -127,7 +127,7 @@ If you’re curious about more than just where your particles went, let `Diagnos
 
 **Structure:**
 - 14 × `double`: Simulation parameters (dt, E0, q, t_ini, t_interval, write_interval, xgsm, ygsm, zgsm, Ek, pa, atmosphere_altitude, t_step, r_step)
-- `long` (8 bytes): Number of records (N)
+- `int32`: Number of records (N)
 - For each record (corresponds to one trajectory point), the following are stored in order (all `double`, total 40 per record):
 
     | Index | Name         | Size | Description                                 | Unit         |
