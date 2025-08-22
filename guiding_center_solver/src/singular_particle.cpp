@@ -86,6 +86,9 @@ VectorXd dydt(const VectorXd& arr_in)
     // debug information
     if (false)
     {
+        cout << "B: " << B.transpose() << endl;
+        cout << "Bt: " << Bt << endl;
+        cout << "E: " << E.transpose() << endl;
         cout << "\nPosition: [" << arr_in[1] << ", " << arr_in[2] << ", " << arr_in[3] << "]" << endl;
         cout << "vd_ExB: [" << vd_ExB[0] << ", " << vd_ExB[1] << ", " << vd_ExB[2] << "]" << endl;
         cout << "vd_grad: [" << vd_grad[0] << ", " << vd_grad[1] << ", " << vd_grad[2] << "]" << endl;
@@ -262,13 +265,14 @@ int singular_particle(const std::string& para_file)
 
     for (int32_t i = 1; i <= num_steps; ++i) // 用int64_t替换long
     {
+        
         // Runge-Kutta 4th order integration
         VectorXd k1 = dydt(Y);
         VectorXd k2 = dydt(Y + 0.5 * dt * k1);
         VectorXd k3 = dydt(Y + 0.5 * dt * k2);
         VectorXd k4 = dydt(Y + dt * k3);
         Y += (dt / 6.0) * (k1 + 2 * k2 + 2 * k3 + k4);
-
+        
         if (i % write_step == 0)
         {
             outfile.write(reinterpret_cast<const char *>(Y.data()), Y.size() * sizeof(double));

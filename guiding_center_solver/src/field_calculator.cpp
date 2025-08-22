@@ -5,17 +5,25 @@
 #include "geopack_caller.h"
 #include "field_calculator.h"
 #include "magnetic_field_models.h"
+#include "poloidal_simple_harmonic_wave.h"
 
 using namespace std;
 using namespace Eigen;
 
+//calculate the electric field vector in GSM coordinates
+Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    
+    // return Vector3d(0.0, 0.0, 0.0);
+    return simple_pol_wave::E_wave(t, xgsm, ygsm, zgsm);
+}
+
 // calculate the magnetic field vector in GSM coordinates
-// IGRF model for this version
 Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
     // // t is epoch time in seconds, convert it to year, day, hour, minute, second
     
     // return igrf_bg(t, xgsm, ygsm, zgsm);
-    return dipole_bg(t, xgsm, ygsm, zgsm);
+    // return dipole_bg(t, xgsm, ygsm, zgsm);
+    return dipole_bg(t, xgsm, ygsm, zgsm) + simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
 }
 
 // calculate the gradient and curvature of Bvec
@@ -103,11 +111,4 @@ double pBpt(const double& t,
     double Bt_plus = B_plus.norm();
 
     return (Bt_plus - Bt_minus) / (2 * dt);
-}
-
-//calculate the electric field vector in GSM coordinates
-Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
-    // For now, we assume the electric field is zero
-    // In a real application, you would calculate the electric field based on the model
-    return Vector3d(0.0, 0.0, 0.0);
 }

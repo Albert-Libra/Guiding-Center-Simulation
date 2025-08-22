@@ -2,10 +2,10 @@ clear
 close all
 addpath(fullfile('..', '..', 'postprocess'));
 input_path = fullfile('.', 'input');
-
-% Delete all files in the output folder
 output_dir = fullfile('.', 'output');
 output_files = dir(fullfile(output_dir, '*'));
+
+%% Delete all files in the output folder
 for i = 1:length(output_files)
     if ~output_files(i).isdir
         delete(fullfile(output_files(i).folder, output_files(i).name));

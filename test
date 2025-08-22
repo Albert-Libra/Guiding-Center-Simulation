@@ -1,12 +1,15 @@
 #!/bin/bash
 
 cd guiding_center_solver/build
+rm -rf *
 cmake ..
 cmake --build .
 
 cd ../..
 cp guiding_center_solver/build/Solver Lab/Example/
 cp guiding_center_solver/build/Diagnosor Lab/Example/
+rm -rf Lab/Example/output/*
+rm -rf Lab/Example/log/*
 
 cd Lab/Example
 ./Solver
