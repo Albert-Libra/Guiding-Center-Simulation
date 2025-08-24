@@ -9,8 +9,8 @@ namespace simple_pol_wave {
 using namespace std;
 using namespace Eigen;
 
-const double E0 = 5; // Electric field amplitude in mV/m
-const double omega = 2 * M_PI * 0.16591; // wave frequency in rad/s
+const double E0 = 3000; // Electric field amplitude in mV/m
+const double omega = 2 * M_PI * 0.15423; // wave frequency in rad/s
 const int m = 1; // azimuthal mode number
 const int n = 2; // harmonic number of the standing wave.
 const double L_width = 0.5; // Gaussian width in L-shells
@@ -20,7 +20,7 @@ const double RE = 1.0; // unit: [RE]
 const double dmu = 0.01;
 const double dL = 0.01;
 
-const double epsilon = 1e-8; // small value to avoid division by zero
+// const double epsilon = 1e-6; // small value to avoid division by zero
 
 double E_phi_amp(const double& t, const double& L, const double& mu, const double& phi) {
     

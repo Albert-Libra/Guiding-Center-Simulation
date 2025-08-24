@@ -4,7 +4,7 @@
 using namespace std;
 using namespace Eigen;
 const double RE = 1; // unit: [RE]
-const double epsilon = 0.00001; // for numerical stability
+const double epsilon = 0.0001; // for numerical stability
 
 Vector3d cartesian_to_spherical(const Vector3d& cartesian) {
     double r = cartesian.norm();
