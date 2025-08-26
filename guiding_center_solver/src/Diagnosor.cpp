@@ -134,10 +134,11 @@ int diagnose_gct(string filePath){
     }
 
     // file name for output
-    char filename[256];
-    snprintf(filename, sizeof(filename),
-             "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f",
-            E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
+    // char filename[256];
+    // snprintf(filename, sizeof(filename),
+    //          "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f",
+    //         E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
+    string filename = (dot_pos == string::npos) ? para_filename : para_filename.substr(0, dot_pos);
     #ifdef _WIN32
         string outFilePath = exeDir + "output\\" + filename + ".gct";
         string diagFilePath = exeDir + "output\\" + filename + ".gcd";

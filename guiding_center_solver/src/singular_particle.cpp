@@ -199,11 +199,14 @@ int singular_particle(const std::string& para_file)
     para_in.close();
 
     // 4. 输出文件路径
-    char filename[256];
-    snprintf(filename, sizeof(filename),
-             "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f.gct",
-            E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
-    string outFilePath = exeDir + "output" + sep + filename;
+    string base_filename = (dot_pos == string::npos) ? para_filename : para_filename.substr(0, dot_pos);
+    string outFilePath = exeDir + "output" + sep + base_filename + ".gct";
+    // char filename[256];
+    // snprintf(filename, sizeof(filename),
+    //          "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f.gct",
+    //         E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
+    // string outFilePath = exeDir + "output" + sep + filename;
+    
     
     // log the detailed parameters
     logFile << "Parameters loaded successfully:" << endl;
