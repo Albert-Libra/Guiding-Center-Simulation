@@ -74,6 +74,10 @@ function data = read_gcd(filename)
     data.t_step             = para(13);
     data.r_step             = para(14);
 
+    % read magnetic field and wave field model numbers
+    data.magnetic_field_model = fread(fid, 1, 'int32');
+    data.wave_field_model     = fread(fid, 1, 'int32');
+
     % read the number of records
     write_count = fread(fid, 1, 'int32');
     if isempty(write_count)

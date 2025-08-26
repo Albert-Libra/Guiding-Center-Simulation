@@ -88,6 +88,7 @@ int diagnose_gct(string filePath){
     double dt, E0, q, t_ini, t_interval, write_interval;
     double xgsm, ygsm, zgsm, Ek, pa, atmosphere_altitude;
     double t_step, r_step;
+    int32_t magnetic_field_model, wave_field_model;
 
     string line;
     int idx = 0;
@@ -114,6 +115,8 @@ int diagnose_gct(string filePath){
             case 11: atmosphere_altitude = val; break;
             case 12: t_step = val; break;
             case 13: r_step = val; break;
+            case 14: magnetic_field_model = static_cast<int>(val); break; // 新增
+            case 15: wave_field_model = static_cast<int>(val); break;     // 新增
             default: break;
         }
         ++idx;
@@ -166,6 +169,9 @@ int diagnose_gct(string filePath){
     double para_array[14] = {dt, E0, q, t_ini, t_interval, write_interval,
                          xgsm, ygsm, zgsm, Ek, pa, atmosphere_altitude, t_step, r_step};
     diag_out.write(reinterpret_cast<const char*>(para_array), sizeof(para_array));
+
+    diag_out.write(reinterpret_cast<const char*>(&magnetic_field_model), sizeof(magnetic_field_model));
+    diag_out.write(reinterpret_cast<const char*>(&wave_field_model), sizeof(wave_field_model));
     diag_out.write(reinterpret_cast<const char*>(&write_count), sizeof(write_count));
 
     // Wring the diagnostic data

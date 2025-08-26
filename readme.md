@@ -117,7 +117,7 @@ Binary file storing the simulated guiding center trajectory for a particle. Havi
     - `x_gsm`  : GSM X position [RE]
     - `y_gsm`  : GSM Y position [RE]
     - `z_gsm`  : GSM Z position [RE]
-    - `p_para` : parallel momentum [MeV/c]
+    - `p_para` : parallel momentum [MeV·s/RE]
 
 ---
 
