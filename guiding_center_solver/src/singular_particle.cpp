@@ -25,12 +25,15 @@
 using namespace std;
 using namespace Eigen;
 
-namespace {
-    thread_local double E0, mu, q; // rest energy [MeV], 1st adiabatic invariant [MeV/nT], charge [e]
-    thread_local double dt;
-    thread_local double t_step, r_step;
-}
-
+// namespace {
+//     thread_local double E0, mu, q; // rest energy [MeV], 1st adiabatic invariant [MeV/nT], charge [e]
+//     thread_local double dt;
+//     thread_local double t_step, r_step;
+// }
+double E0, mu, q;
+double dt;
+double t_step, r_step;
+int magnetic_field_model, wave_field_model;
 
 const double c = 47.055; // Speed of light in RE/s
 
@@ -187,6 +190,8 @@ int singular_particle(const std::string& para_file)
             case 11: atmosphere_altitude = val; break;
             case 12: t_step = val; break;
             case 13: r_step = val; break;
+            case 14: magnetic_field_model = static_cast<int>(val); break;
+            case 15: wave_field_model = static_cast<int>(val); break;
             default: break;
         }
         ++idx;

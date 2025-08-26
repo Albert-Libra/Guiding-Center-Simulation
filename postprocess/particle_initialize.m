@@ -18,6 +18,8 @@ function particle_initialize(input_path)
     atmosphere_altitude = input('Please enter the atmosphere altitude (in km): ');
     t_step = input('Please enter the time step for calculating derivatives (in seconds): ');
     r_step = input('Please enter the spatial step for calculating derivatives (in RE): ');
+    magnetic_field_model = input('Please enter the magnetic field model (0=Dipole, 1=IGRF, 2=Custom): ');
+    wave_field_model = input('Please enter the wave field model (0=None, 1=Simple Poloidal mode Harmonic, 2=Custom): ');
 
     % Create the .para file
     filename = sprintf('E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f.para', ...
@@ -57,6 +59,8 @@ function particle_initialize(input_path)
     fprintf(fid, '%-20.10g; %% atmosphere altitude [km], atmosphere_altitude\n',      atmosphere_altitude);
     fprintf(fid, '%-20.10g; %% time step for calculating derivatives [s], t_step\n',  t_step);
     fprintf(fid, '%-20.10g; %% spatial step for calculating derivatives [RE], r_step\n', r_step);
+    fprintf(fid, '%-20.10g; %% magnetic field model (0=Dipole, 1=IGRF, 2=Custom)\n', magnetic_field_model);
+    fprintf(fid, '%-20.10g; %% wave field model (0=None, 1=Simple Poloidal mode Harmonic, 2=Custom)\n', wave_field_model);
     fclose(fid);
     disp(['Parameter file created: ', filepath]);
 end

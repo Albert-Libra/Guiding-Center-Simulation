@@ -1,4 +1,4 @@
-0.001               ; % time step [s], dt
+0.0005               ; % time step [s], dt
 0.511               ; % rest energy of the particle [MeV], E0
 -1                  ; % charge of the particle [e], q
 1577836800          ; % initial time [epoch time in seconds], t_ini
@@ -12,3 +12,5 @@
 0                   ; % atmosphere altitude [km], atmosphere_altitude
 0.0001              ; % time step for calculating derivatives [s], t_step
 0.001               ; % spatial step for calculating derivatives [RE], r_step
+0                   ; % magnetic field model (0=Dipole, 1=IGRF, 2=Custom)
+0                   ; % wave field model (0=None, 1=Simple Harmonic, 2=Custom)

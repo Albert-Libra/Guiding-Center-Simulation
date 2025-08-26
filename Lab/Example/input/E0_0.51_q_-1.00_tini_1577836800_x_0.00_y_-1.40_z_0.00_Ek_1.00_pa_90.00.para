@@ -1,14 +1,16 @@
--0.001; % time step [s], dt
-0.511; % rest energy of the particle [MeV], E0
--1; % charge of the particle [e], q
-1577836800; % initial time [epoch time in seconds], t_ini
-300; % time interval [s], t_interval
-0.01; % write interval [s], write_interval
-0; % initial GSM X position [RE], xgsm
--1.4; % initial GSM Y position [RE], ygsm
-0; % initial GSM Z position [RE], zgsm
-1; % initial kinetic energy of the particle [MeV], Ek
-90; % initial pitch angle [deg], pa
-0; % atmosphere altitude [km], atmosphere_altitude
-0.0001; % time step for calculating derivatives [s], t_step
-0.001; % spatial step for calculating derivatives [RE], r_step
+-0.001;                % time step [s], dt
+0.511;                 % rest energy of the particle [MeV], E0
+-1;                    % charge of the particle [e], q
+1577836800;            % initial time [epoch time in seconds], t_ini
+300;                   % time interval [s], t_interval
+0.01;                  % write interval [s], write_interval
+0;                     % initial GSM X position [RE], xgsm
+-1.4;                  % initial GSM Y position [RE], ygsm
+0;                     % initial GSM Z position [RE], zgsm
+1;                     % initial kinetic energy of the particle [MeV], Ek
+90;                    % initial pitch angle [deg], pa
+0;                     % atmosphere altitude [km], atmosphere_altitude
+0.0001;                % time step for calculating derivatives [s], t_step
+0.001;                 % spatial step for calculating derivatives [RE], r_step
+1;                     % magnetic field model (0=Dipole, 1=IGRF, 2=Custom)
+1;                     % wave field model (0=None, 1=Simple Harmonic, 2=Custom)
