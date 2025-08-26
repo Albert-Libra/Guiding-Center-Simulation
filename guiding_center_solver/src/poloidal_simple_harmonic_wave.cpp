@@ -36,7 +36,7 @@ struct WaveConfig {
     bool valid;  // 标记配置是否有效
     
     // Constructor with default values
-    WaveConfig() : E0(3000.0), omega(2*M_PI*0.15423), m(1), n(2), 
+    WaveConfig() : E0(3000.0), omega(2*M_PI/0.15423), m(1), n(2), 
                    L_width(0.5), L0(1.4), dmu(0.01), dL(0.01), phi0(0.0), valid(false) {}
 };
 
@@ -130,7 +130,7 @@ bool read_wave_config(const std::string& filename, WaveConfig& config) {
     
     // Assign values in order
     config.E0 = values[0];                          // Electric field amplitude in mV/m
-    config.omega = 2 * M_PI * values[1];            // Convert Hz to rad/s
+    config.omega = 2 * M_PI / values[1];            // Convert s to rad/s
     config.m = static_cast<int>(values[2]);          // Azimuthal mode number
     config.n = static_cast<int>(values[3]);          // Harmonic number
     config.L_width = values[4];                      // Gaussian width in L-shells
