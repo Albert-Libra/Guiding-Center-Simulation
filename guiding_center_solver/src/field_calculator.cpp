@@ -23,27 +23,43 @@ Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const dou
     std::exit(EXIT_FAILURE);
 }
 
+Vector3d B_bg(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    if (magnetic_field_model == 0) return dipole_bg(t, xgsm, ygsm, zgsm);
+    if (magnetic_field_model == 1) return igrf_bg(t, xgsm, ygsm, zgsm);
+    // 其他模型...
+    std::cerr << "Error: Unknown magnetic_field_model = " << magnetic_field_model << std::endl;
+    std::exit(EXIT_FAILURE);
+}
+
+Vector3d B_wav(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    if (wave_field_model == 0) return Vector3d(0.0, 0.0, 0.0);
+    if (wave_field_model == 1) return simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
+    // 其他模型...
+    std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
+    std::exit(EXIT_FAILURE);
+}
+
 // calculate the magnetic field vector in GSM coordinates
 Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    return B_bg(t, xgsm, ygsm, zgsm) + B_wav(t, xgsm, ygsm, zgsm);
+    // Vector3d B_bg;
+    // if (magnetic_field_model == 0) B_bg = dipole_bg(t, xgsm, ygsm, zgsm);
+    // else if (magnetic_field_model == 1) B_bg = igrf_bg(t, xgsm, ygsm, zgsm);
+    // // 其他模型...
+    // else {
+    //     std::cerr << "Error: Unknown magnetic_field_model = " << magnetic_field_model << std::endl;
+    //     std::exit(EXIT_FAILURE);
+    // }
 
-    Vector3d B_bg;
-    if (magnetic_field_model == 0) B_bg = dipole_bg(t, xgsm, ygsm, zgsm);
-    else if (magnetic_field_model == 1) B_bg = igrf_bg(t, xgsm, ygsm, zgsm);
-    // 其他模型...
-    else {
-        std::cerr << "Error: Unknown magnetic_field_model = " << magnetic_field_model << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-
-    Vector3d B_wav;
-    if (wave_field_model == 0) B_wav = Vector3d(0.0, 0.0, 0.0);
-    else if (wave_field_model == 1) B_wav = simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
-    // 其他模型...
-    else {
-        std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-    return B_bg + B_wav;
+    // Vector3d B_wav;
+    // if (wave_field_model == 0) B_wav = Vector3d(0.0, 0.0, 0.0);
+    // else if (wave_field_model == 1) B_wav = simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
+    // // 其他模型...
+    // else {
+    //     std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
+    //     std::exit(EXIT_FAILURE);
+    // }
+    // return B_bg + B_wav;
 }
 
 // calculate the gradient and curvature of Bvec
