@@ -1,4 +1,4 @@
-# A simplified model for poloidal mode wave
+# A simplified model for ULF wave
 
 ## Orthogonal dipole coordinate system
 
@@ -69,7 +69,9 @@ z = (\sqrt{\sqrt{2}a/\sqrt{y} - 2y} - \sqrt{2y})/2\\
 \theta = \left\{\begin{matrix}\arcsin(\sqrt z)\ \ \ (\mu>0)\\\pi -\arcsin(\sqrt z)\ \ \ (\mu<0)\end{matrix}\right.
 ```
 
-## Electric field
+## Poloidal mode
+
+### Electric field
 
 The azimuthal component of the simple wave's electric field can be given as:
 
@@ -90,14 +92,14 @@ Therefore, the radial electric component can be given as :
 E_L=\frac{mE_0\sin(m\varphi-\omega t)\sin(n\theta)}{\sqrt{1+3\cos^2\theta}}\cdot\frac{\sqrt{\pi}}{2}L_w\operatorname{erf}\left(\frac{\ln(L/L_0)}{L_w}\right)
 ```
 
-## Magnetic field
+### Magnetic field
 
 According to the Maxwell's Equations,the magnetic field satisfies:
 
 ```math
-\frac{\partial B_L}{\partial t}=-\frac{1}{h_\varphi h_\mu}\left(-\frac{\partial(h_\varphi E_\phi)}{\partial\mu}\right)\\
+\frac{\partial B_L}{\partial t}=-\frac{1}{h_\varphi h_\mu}\left(-\frac{\partial(h_\varphi E_\varphi)}{\partial\mu}\right)\\
 \frac{\partial B_\varphi}{\partial t}=-\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L E_L)}{\partial\mu}\right)\\
-\frac{\partial B_\mu}{\partial t}=-\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\phi)}{\partial L}-\frac{\partial(h_LE_L)}{\partial\varphi}\right)
+\frac{\partial B_\mu}{\partial t}=-\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\varphi)}{\partial L}-\frac{\partial(h_LE_L)}{\partial\varphi}\right)
 
 ```
 
@@ -106,7 +108,51 @@ Because $t$ and $\varphi$ only appear in the cosine function in E, the calculati
 ```math
 B_L=-\frac{\tan(m\varphi-\omega t)}{\omega}\frac{\partial B_L}{\partial t}=-\frac{\tan(m\varphi-\omega t)}{\omega}\frac{1}{h_\varphi h_\mu}\left(\frac{\partial(h_\varphi E_\phi)}{\partial\mu}\right)\\
 B_\varphi=\frac{1}{\omega\tan(m\varphi-\omega t)}\frac{\partial B_\varphi}{\partial t}=-\frac{1}{\omega\tan(m\varphi-\omega t)}\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L E_L)}{\partial\mu}\right)\\
-B_\mu=\frac{\tan(m\varphi-\omega t)}{\omega}\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\phi)}{\partial L}\right)-\frac{m}{\omega}\frac{1}{ h_\varphi}E_L
+B_\mu=\frac{\tan(m\varphi-\omega t)}{\omega}\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\varphi)}{\partial L}\right)-\frac{m}{\omega}\frac{1}{ h_\varphi}E_L
+```
+
+The partial derivatives of the electric field can be computed numerically.
+
+## Toroidal mode
+
+### Electric field
+
+The radial component of the simple wave's electric field can be given as:
+
+```math
+E_L = E_0\cos(m\varphi-\omega t)\sin(n\theta)\exp\left(-(\frac{\ln(L/L_0)}{L_w})^2\right)
+```
+
+where $m$ and $n$ are integers. In MHD wave, the parallel component $E_\mu=0$. According to the Maxwell's Equations, the azimuthal component should satisfy:
+
+```math
+\frac{\partial E_\varphi}{h_\varphi\partial\varphi}+\frac{\partial E_L}{h_L\partial L}=0\\
+\frac{\partial E_\varphi}{\partial\varphi}=2E_0\cos(m\varphi-\omega t)\sqrt{1+3\cos^2\theta}\sin(n\theta)\exp\left((-(\frac{\ln(L/L_0)}{L_w})^2\right)\frac{\ln(L/L_0)}{L^2_w}
+```
+
+Therefore, the radial electric component can be given as :
+
+```math
+E_\varphi=\frac{2}{m}E_0\sin(m\varphi-\omega t)\sqrt{1+3\cos^2\theta}\sin(n\theta)\exp\left((-(\frac{\ln(L/L_0)}{L_w})^2\right)\frac{\ln(L/L_0)}{L^2_w}
+```
+
+### Magnetic field
+
+According to the Maxwell's Equations,the magnetic field satisfies:
+
+```math
+\frac{\partial B_L}{\partial t}=-\frac{1}{h_\varphi h_\mu}\left(-\frac{\partial(h_\varphi E_\varphi)}{\partial\mu}\right)\\
+\frac{\partial B_\varphi}{\partial t}=-\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L E_L)}{\partial\mu}\right)\\
+\frac{\partial B_\mu}{\partial t}=-\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\varphi)}{\partial L}-\frac{\partial(h_LE_L)}{\partial\varphi}\right)
+
+```
+
+Because $t$ and $\varphi$ only appear in the cosine function in E, the calculation can be simplified
+
+```math
+B_L=\frac{1}{\omega\tan(m\varphi-\omega t)}\frac{\partial B_L}{\partial t}=\frac{1}{\omega\tan(m\varphi-\omega t)}\frac{1}{h_\varphi h_\mu}\left(\frac{\partial(h_\varphi E_\phi)}{\partial\mu}\right)\\
+B_\varphi=-\frac{\tan(m\varphi-\omega t)}{\omega}\frac{\partial B_\varphi}{\partial t}=\frac{\tan(m\varphi-\omega t)}{\omega}\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L E_L)}{\partial\mu}\right)\\
+B_\mu=-\frac{1}{\omega\tan(m\varphi-\omega t)}\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\varphi)}{\partial L}\right)-\frac{m}{\omega}\frac{1}{ h_\varphi}E_L
 ```
 
 The partial derivatives of the electric field can be computed numerically.

@@ -6,6 +6,7 @@
 #include "field_calculator.h"
 #include "magnetic_field_models.h"
 #include "poloidal_simple_harmonic_wave.h"
+#include "toroidal_simple_harmonic_wave.h"
 
 using namespace std;
 using namespace Eigen;
@@ -18,6 +19,7 @@ extern int wave_field_model;
 Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
     if (wave_field_model == 0) return Vector3d(0.0, 0.0, 0.0);
     if (wave_field_model == 1) return simple_pol_wave::E_wave(t, xgsm, ygsm, zgsm);
+    if (wave_field_model == 2) return simple_tor_wave::E_wave(t, xgsm, ygsm, zgsm);
     // 其他模型...
     std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
     std::exit(EXIT_FAILURE);
@@ -34,6 +36,7 @@ Vector3d B_bg(const double& t, const double& xgsm, const double& ygsm, const dou
 Vector3d B_wav(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
     if (wave_field_model == 0) return Vector3d(0.0, 0.0, 0.0);
     if (wave_field_model == 1) return simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
+    if (wave_field_model == 2) return simple_tor_wave::B_wave(t, xgsm, ygsm, zgsm);
     // 其他模型...
     std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
     std::exit(EXIT_FAILURE);
