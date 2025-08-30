@@ -127,13 +127,13 @@ where $m$ and $n$ are integers. In MHD wave, the parallel component $E_\mu=0$. A
 
 ```math
 \frac{\partial E_\varphi}{h_\varphi\partial\varphi}+\frac{\partial E_L}{h_L\partial L}=0\\
-\frac{\partial E_\varphi}{\partial\varphi}=2E_0\cos(m\varphi-\omega t)\sqrt{1+3\cos^2\theta}\sin(n\theta)\exp\left((-(\frac{\ln(L/L_0)}{L_w})^2\right)\frac{\ln(L/L_0)}{L^2_w}
+\frac{\partial E_\varphi}{\partial\varphi}=2E_0\cos(m\varphi-\omega t)\sqrt{1+3\cos^2\theta}\sin(n\theta)\exp\left(-(\frac{\ln(L/L_0)}{L_w})^2\right)\frac{\ln(L/L_0)}{L^2_w}
 ```
 
 Therefore, the radial electric component can be given as :
 
 ```math
-E_\varphi=\frac{2}{m}E_0\sin(m\varphi-\omega t)\sqrt{1+3\cos^2\theta}\sin(n\theta)\exp\left((-(\frac{\ln(L/L_0)}{L_w})^2\right)\frac{\ln(L/L_0)}{L^2_w}
+E_\varphi=\frac{2}{m}E_0\sin(m\varphi-\omega t)\sqrt{1+3\cos^2\theta}\sin(n\theta)\exp\left(-(\frac{\ln(L/L_0)}{L_w})^2\right)\frac{\ln(L/L_0)}{L^2_w}
 ```
 
 ### Magnetic field
