@@ -8,6 +8,7 @@ cmake --build .
 cd ../..
 cp guiding_center_solver/build/Solver Lab/Example/
 cp guiding_center_solver/build/Diagnosor Lab/Example/
+cp guiding_center_solver/build/Tracer Lab/Example/
 rm -rf Lab/Example/output/*
 rm -rf Lab/Example/log/*
 

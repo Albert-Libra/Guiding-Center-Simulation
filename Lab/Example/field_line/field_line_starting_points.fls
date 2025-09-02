@@ -1,0 +1,9 @@
+0           # magnetic field model (0=Dipole, 1=IGRF, 2=Custom)
+1           # wave model
+0.01        # step size, unit: [RE]
+10          # outer limit, unit: [RE]
+10000       # Max steps
+1577836800  # tracing time [epoch time in seconds]
+
+1.4, 0, 0   # GSM coordinates, unit: [RE]
+5.4, 0, 0   # GSM coordinates, unit: [RE]

@@ -152,3 +152,39 @@ void smgsm(double* xsm, double* ysm, double* zsm, double* xgsm, double* ygsm, do
     }
     smgsw_08_(xsm, ysm, zsm, xgsm, ygsm, zgsm, J);
 }
+
+// trace field line
+extern "C"
+#ifdef _WIN32
+__declspec(dllexport)
+#endif
+void trace(double* xi, double* yi, double* zi, double* dir, double* dsmax, double* err, 
+           double* rlim, double* r0, int* iopt, double* parmod, 
+           double* xf, double* yf, double* zf, double* xx, double* yy, double* zz, 
+           int* l, int* lmax)
+{
+    typedef void (*trace_08_t)(double*, double*, double*, double*, double*, double*, 
+                               double*, double*, int*, double*, 
+                               double*, double*, double*, double*, double*, double*, 
+                               int*, int*);
+    static trace_08_t trace_08_ = nullptr;
+
+    if (!lib_geopack) {
+        lib_geopack = LOAD_LIB(GEOPACK_LIB_PATH);
+        if (!lib_geopack) {
+            std::cerr << "Failed to load Geopack library in trace." << std::endl;
+            return;
+        }
+    }
+
+    if (!trace_08_) {
+        trace_08_ = (trace_08_t)GET_PROC(lib_geopack, "trace_08_");
+        if (!trace_08_) {
+            std::cerr << "Failed to get trace_08_ from library." << std::endl;
+            return;
+        }
+    }
+
+    trace_08_(xi, yi, zi, dir, dsmax, err, rlim, r0, iopt, parmod, 
+              xf, yf, zf, xx, yy, zz, l, lmax);
+}

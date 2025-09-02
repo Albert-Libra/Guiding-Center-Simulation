@@ -89,7 +89,7 @@ where $m$ and $n$ are integers. In MHD wave, the parallel component $E_\mu=0$. A
 Therefore, the radial electric component can be given as :
 
 ```math
-E_L=\frac{mE_0\sin(m\varphi-\omega t)\sin(n\theta)}{\sqrt{1+3\cos^2\theta}}\cdot\frac{\sqrt{\pi}}{2}L_w\operatorname{erf}\left(\frac{\ln(L/L_0)}{L_w}\right)
+E_L=\frac{mE_0\sin(m\varphi-\omega t)\sin(n\theta)}{\sqrt{1+3\cos^2\theta}}\cdot\frac{\sqrt{\pi}}{2}L_w\rm{erf}\left(\frac{\ln(L/L_0)}{L_w}\right)
 ```
 
 ### Magnetic field

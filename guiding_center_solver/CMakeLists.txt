@@ -59,14 +59,23 @@ endif()
 # 查找所有cpp文件
 file(GLOB ALL_SRC src/*.cpp)
 
-# Solver主程序（排除Diagnosor.cpp）
+# Solver主程序（排除Diagnosor.cpp和field_line_tracer.cpp）
 set(SOLVER_SRC ${ALL_SRC})
 list(REMOVE_ITEM SOLVER_SRC ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp)
+list(REMOVE_ITEM SOLVER_SRC ${CMAKE_SOURCE_DIR}/src/field_line_tracer.cpp)
 add_executable(Solver ${SOLVER_SRC})
 
+# Diagnosor程序（排除Solver.cpp和field_line_tracer.cpp）
 set(DIAGNOSOR_SRC ${ALL_SRC})
 list(REMOVE_ITEM DIAGNOSOR_SRC ${CMAKE_SOURCE_DIR}/src/Solver.cpp)
+list(REMOVE_ITEM DIAGNOSOR_SRC ${CMAKE_SOURCE_DIR}/src/field_line_tracer.cpp)
 add_executable(Diagnosor ${DIAGNOSOR_SRC})
+
+# Tracer程序（排除Solver.cpp和Diagnosor.cpp）
+set(TRACER_SRC ${ALL_SRC})
+list(REMOVE_ITEM TRACER_SRC ${CMAKE_SOURCE_DIR}/src/Solver.cpp)
+list(REMOVE_ITEM TRACER_SRC ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp)
+add_executable(Tracer ${TRACER_SRC})
 
 # 生成geopack_caller动态链接库，并指定输出路径为 postprocess/include
 add_library(geopack_caller SHARED src/geopack_caller.cpp)
@@ -83,6 +92,7 @@ if(UNIX)
     target_link_libraries(geopack_caller dl)
     target_link_libraries(Solver dl)
     target_link_libraries(Diagnosor dl)
+    target_link_libraries(Tracer dl)
 endif()
 
 # add_custom_command(TARGET geopack_caller POST_BUILD
