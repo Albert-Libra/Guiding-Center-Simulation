@@ -6,7 +6,7 @@ Eigen::Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, co
 
 Eigen::Vector3d B_bg(const double& t, const double& xgsm, const double& ygsm, const double& zgsm);
 
-Eigen::Vector3d B_wave(const double& t, const double& xgsm, const double& ygsm, const double& zgsm);
+Eigen::Vector3d B_wav(const double& t, const double& xgsm, const double& ygsm, const double& zgsm);
 
 Eigen::VectorXd B_grad_curv(const double& t, 
                 const double& xgsm, 

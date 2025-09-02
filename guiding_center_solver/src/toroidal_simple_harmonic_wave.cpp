@@ -1,3 +1,4 @@
+#include <string>
 #include <Eigen/Dense>
 #include "geopack_caller.h"
 #include "coordinates_transfer.h"
@@ -15,6 +16,7 @@
     #include <dirent.h>
 #endif
 
+extern std::string exeDir;
 namespace simple_tor_wave {
 
 using namespace std;
@@ -152,15 +154,36 @@ const WaveConfig& get_config() {
     static bool loaded = false;
     
     if (!loaded) {
-        std::cout << "Searching for .pol files in input directory ..." << std::endl;
-        
-        std::string wave_file = find_wave_file("input");
-        
+         // 使用主程序传递的exeDir
+        std::string input_dir = exeDir + (exeDir.empty() ? "input" :
+#ifdef _WIN32
+            "\\input"
+#else
+            "/input"
+#endif
+        );
+        std::cout << "Searching for .pol files in " << input_dir << " ..." << std::endl;
+
+        std::string wave_file = find_wave_file(input_dir);
+
         bool success = false;
         if (!wave_file.empty()) {
             success = read_wave_config(wave_file, config);
         } else {
-            std::cerr << "Warning: No .pol configuration file found in input directory." << std::endl;
+            char abs_path[1024];
+#ifdef _WIN32
+            if (_fullpath(abs_path, input_dir.c_str(), sizeof(abs_path)) != nullptr) {
+                std::cerr << "Warning: No .pol configuration file found in input directory: " << abs_path << std::endl;
+            } else {
+                std::cerr << "Warning: No .pol configuration file found in input directory (failed to get absolute path)." << std::endl;
+            }
+#else
+            if (realpath(input_dir.c_str(), abs_path) != nullptr) {
+                std::cerr << "Warning: No .pol configuration file found in input directory: " << abs_path << std::endl;
+            } else {
+                std::cerr << "Warning: No .pol configuration file found in input directory (failed to get absolute path)." << std::endl;
+            }
+#endif
         }
         
         if (success) {

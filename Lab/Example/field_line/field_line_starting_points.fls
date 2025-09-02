@@ -1,7 +1,7 @@
 0           # magnetic field model (0=Dipole, 1=IGRF, 2=Custom)
-1           # wave model
+2           # wave model
 1           # plasmasphere model
-0.01        # step size, unit: [RE]
+0.05        # step size, unit: [RE]
 10          # outer limit, unit: [RE]
 10000       # Max steps
 1577836800  # tracing time [epoch time in seconds]

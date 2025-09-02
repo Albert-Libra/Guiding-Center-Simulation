@@ -3,6 +3,7 @@
 *.exe
 *.gcd
 *.gct
+*.fld
 *.log
 *.asv
 *.png

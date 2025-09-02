@@ -29,7 +29,7 @@ string exeDir;
 // 声明全局变量
 extern int magnetic_field_model;
 extern int wave_field_model;
-int plasmasphere_model;
+int32_t plasmasphere_model;
 
 
 
@@ -41,14 +41,13 @@ Eigen::MatrixXd trace_field_line(const Vector3d& start_point, double step_size, 
     auto collect_info = [&](const Vector3d& pt) {
         Vector3d B = B_bg(epoch_time, pt(0), pt(1), pt(2));
         Vector3d E = Evec(epoch_time, pt(0), pt(1), pt(2));
-        Vector3d Bw = B_wave(epoch_time, pt(0), pt(1), pt(2));
+        Vector3d Bw = B_wav(epoch_time, pt(0), pt(1), pt(2));
         double density = plasma_density(plasmasphere_model, epoch_time, pt(0), pt(1), pt(2));
         double vA;
         if (density > 1e-10) {
             vA = 0.0034 * B.norm() / sqrt(density); // Alfven速度，单位: RE/s
         }else {
-            cerr << "Warning: Plasma density too low at point " << pt.transpose() << ", setting vA to 0." << endl;
-            vA = 0.0;
+            vA = 0.0034 * B.norm() / sqrt(1e-10);
         }
         VectorXd row(14);
         row << pt, B, E, Bw, density, vA;
@@ -57,7 +56,9 @@ Eigen::MatrixXd trace_field_line(const Vector3d& start_point, double step_size, 
 
     points_info.push_back(collect_info(start_point));
     Vector3d current_point = start_point;
+    
     for (int step = 0; step < max_steps; ++step) {
+        cout << "start point: " << current_point.transpose() << endl;
         Vector3d B = B_bg(epoch_time, current_point(0), current_point(1), current_point(2));
         Vector3d B_unit = B.normalized();
         Vector3d next_point = current_point + step_size * B_unit;
@@ -219,7 +220,8 @@ int main() {
 
         // 构造输出文件名
         char fname[256];
-        snprintf(fname, sizeof(fname), "fld_point_%zu.fld", i);
+        snprintf(fname, sizeof(fname), "Trace_(%.6f_%.6f_%.6f).fld",
+             starting_points[i](0), starting_points[i](1), starting_points[i](2));
         string outFilePath = exeDir + "field_line" + sep + fname;
 
         ofstream fout(outFilePath, ios::binary | ios::trunc);
@@ -229,8 +231,21 @@ int main() {
         }
 
         // 写参数信息（顺序与Diagnosor.cpp类似）
-        double para_array[6] = {step_size, outer_limit, static_cast<double>(max_steps), epoch_time, static_cast<double>(magnetic_field_model), static_cast<double>(wave_field_model)};
+        double para_array[3] = {step_size, outer_limit, epoch_time};
+        int32_t para_int_array[3] = {magnetic_field_model, wave_field_model, plasmasphere_model};
         fout.write(reinterpret_cast<const char*>(para_array), sizeof(para_array));
+        fout.write(reinterpret_cast<const char*>(para_int_array), sizeof(para_int_array));
+        // 计算本征周期和本征频率
+        double period = 0.0;
+        for (int r = 1; r < field_line_data.rows(); ++r) {
+            double vA = field_line_data(r, 13); // 第14列为Alfven速度
+            if (vA > 1e-10) {
+            period += step_size / vA;
+            }
+        }
+        period *= 2.0;
+        double f0 = (period > 1e-10) ? (1.0 / period) : 0.0;
+        fout.write(reinterpret_cast<const char*>(&f0), sizeof(f0));
 
         // 写行数和列数
         int32_t nrow = static_cast<int32_t>(field_line_data.rows());
@@ -238,9 +253,13 @@ int main() {
         fout.write(reinterpret_cast<const char*>(&nrow), sizeof(nrow));
         fout.write(reinterpret_cast<const char*>(&ncol), sizeof(ncol));
 
-        // 写磁力线矩阵数据
+        // 写磁力线矩阵数据，依次写入每个点的 x y z Bx By Bz Ex Ey Ez Bw_x Bw_y Bw_z density Alfven_speed
         for (int r = 0; r < field_line_data.rows(); ++r) {
-            fout.write(reinterpret_cast<const char*>(field_line_data.row(r).data()), ncol * sizeof(double));
+            double buffer[14];
+            for (int c = 0; c < 14; ++c) {
+            buffer[c] = field_line_data(r, c);
+            }
+            fout.write(reinterpret_cast<const char*>(buffer), 14 * sizeof(double));
         }
         fout.close();
         cout << "Field line data written to: " << outFilePath << endl;
