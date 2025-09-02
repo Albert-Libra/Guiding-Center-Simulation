@@ -19,6 +19,7 @@
 
 #include "field_calculator.h"
 #include "plasmasphere_model.h"
+#include "coordinates_transfer.h"
 
 using namespace std;
 using namespace Eigen;
@@ -28,19 +29,29 @@ string exeDir;
 // 声明全局变量
 extern int magnetic_field_model;
 extern int wave_field_model;
+int plasmasphere_model;
+
 
 
 Eigen::MatrixXd trace_field_line(const Vector3d& start_point, double step_size, double outer_limit, int max_steps, double epoch_time) {
     cout << "Tracing field line from point: " << start_point.transpose() << endl;
-    // 每行：x y z Bx By Bz Ex Ey Ez Bw_x Bw_y Bw_z
+    // 每行：x y z Bx By Bz Ex Ey Ez Bw_x Bw_y Bw_z density Alfven_speed
     std::vector<VectorXd> points_info;
 
     auto collect_info = [&](const Vector3d& pt) {
         Vector3d B = B_bg(epoch_time, pt(0), pt(1), pt(2));
         Vector3d E = Evec(epoch_time, pt(0), pt(1), pt(2));
         Vector3d Bw = B_wave(epoch_time, pt(0), pt(1), pt(2));
-        VectorXd row(12);
-        row << pt, B, E, Bw;
+        double density = plasma_density(plasmasphere_model, epoch_time, pt(0), pt(1), pt(2));
+        double vA;
+        if (density > 1e-10) {
+            vA = 0.0034 * B.norm() / sqrt(density); // Alfven速度，单位: RE/s
+        }else {
+            cerr << "Warning: Plasma density too low at point " << pt.transpose() << ", setting vA to 0." << endl;
+            vA = 0.0;
+        }
+        VectorXd row(14);
+        row << pt, B, E, Bw, density, vA;
         return row;
     };
 
@@ -83,7 +94,7 @@ Eigen::MatrixXd trace_field_line(const Vector3d& start_point, double step_size, 
     points_info.insert(points_info.begin(), backward_info.rbegin(), backward_info.rend());
 
     // 转为MatrixXd
-    Eigen::MatrixXd result(points_info.size(), 12);
+    Eigen::MatrixXd result(points_info.size(),14);
     for (size_t i = 0; i < points_info.size(); ++i) {
         result.row(i) = points_info[i];
     }
@@ -162,16 +173,18 @@ int main() {
 
         istringstream iss(line);
         if (line_num == 0) {
-            iss >> magnetic_field_model; // set global variable
+            iss >> magnetic_field_model;
         } else if (line_num == 1) {
-            iss >> wave_field_model; // 修复：必须赋值给全局变量
+            iss >> wave_field_model;
         } else if (line_num == 2) {
-            iss >> step_size;
+            iss >> plasmasphere_model;
         } else if (line_num == 3) {
-            iss >> outer_limit;
+            iss >> step_size;
         } else if (line_num == 4) {
-            iss >> max_steps;
+            iss >> outer_limit;
         } else if (line_num == 5) {
+            iss >> max_steps;
+        } else if (line_num == 6) {
             iss >> epoch_time;
         } else {
             double x, y, z;

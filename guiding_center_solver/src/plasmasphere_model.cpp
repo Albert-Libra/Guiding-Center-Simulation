@@ -3,6 +3,9 @@
 #include "geopack_caller.h"
 
 double Ozhogin(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    // Ozhogin et al. 2012 plasmasphere model
+    // Input: time t (epoch time in seconds), position (xgsm, ygsm, zgsm) in GSM coordinates [RE]
+    // Output: electron density in cm^-3
     
     time_t epoch_time = static_cast<time_t>(t);
     tm* time_info = gmtime(&epoch_time);
@@ -30,4 +33,10 @@ double Ozhogin(const double& t, const double& xgsm, const double& ygsm, const do
     double N = Neq * pow(cos(M_PI/2*1.01*lat/lat_inv),-0.75);
     
     return N; // unit: cm^-3
+}
+
+double plasma_density(int32_t model,const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    // Wrapper function to select plasma density model
+    // Currently only Ozhogin model is implemented
+    return Ozhogin(t, xgsm, ygsm, zgsm);
 }
