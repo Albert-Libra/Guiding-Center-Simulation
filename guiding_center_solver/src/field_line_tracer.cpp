@@ -20,6 +20,7 @@
 #include "field_calculator.h"
 #include "plasmasphere_model.h"
 #include "coordinates_transfer.h"
+#include "geopack_caller.h"
 
 using namespace std;
 using namespace Eigen;
@@ -38,10 +39,48 @@ Eigen::MatrixXd trace_field_line(const Vector3d& start_point, double step_size, 
     // 每行：x y z Bx By Bz Ex Ey Ez Bw_x Bw_y Bw_z density Alfven_speed
     std::vector<VectorXd> points_info;
 
+    time_t epoch = static_cast<time_t>(epoch_time);
+    tm* time_info = gmtime(&epoch);
+    int IYEAR = time_info->tm_year + 1900;
+    int IDAY = time_info->tm_yday + 1;
+    int IHOUR = time_info->tm_hour;
+    int MIN = time_info->tm_min;
+    double ISEC = static_cast<double>(time_info->tm_sec);
+    double vgsex = -400.0, vgsey = 0.0, vgsez = 0.0;
+    recalc(&IYEAR, &IDAY, &IHOUR, &MIN, &ISEC, &vgsex, &vgsey, &vgsez);
+
     auto collect_info = [&](const Vector3d& pt) {
         Vector3d B = B_bg(epoch_time, pt(0), pt(1), pt(2));
         Vector3d E = Evec(epoch_time, pt(0), pt(1), pt(2));
         Vector3d Bw = B_wav(epoch_time, pt(0), pt(1), pt(2));
+
+        double xsm, ysm, zsm;
+        double xgsm_nc = pt(0), ygsm_nc = pt(1), zgsm_nc = pt(2);
+        int direction = -1;
+        smgsm(&xsm, &ysm, &zsm, &xgsm_nc, &ygsm_nc, &zgsm_nc, &direction);
+        Vector3d sm(xsm, ysm, zsm);
+        Vector3d dip_cor = cartesian_to_dipole(sm);
+        double L = dip_cor[0];
+        double phi = dip_cor[1];
+        double MLT = acos(xsm / sqrt(xsm*xsm + ysm*ysm)) * 12.0 / M_PI * (ysm < 0 ? -1 : 1) + 12.0 ; 
+        double MLAT = atan2(zsm, sqrt(xsm * xsm + ysm * ysm)) * 180 / M_PI;
+
+        Matrix3d dip_bas = dipole_basis(sm);
+        Vector3d e_L_sm = dip_bas.col(0);
+        Vector3d e_phi_sm = dip_bas.col(1);
+        Vector3d e_mu_sm= dip_bas.col(2);
+
+        direction = 1;
+        double e_L_smx = e_L_sm[0]; double e_L_smy = e_L_sm[1]; double e_L_smz = e_L_sm[2];
+        double e_L_gsmx, e_L_gsmy, e_L_gsmz;
+        smgsm(&e_L_smx, &e_L_smy, &e_L_smz, &e_L_gsmx, &e_L_gsmy, &e_L_gsmz, &direction);
+        double e_phi_smx = e_phi_sm[0]; double e_phi_smy = e_phi_sm[1]; double e_phi_smz = e_phi_sm[2];
+        double e_phi_gsmx, e_phi_gsmy, e_phi_gsmz;
+        smgsm(&e_phi_smx, &e_phi_smy, &e_phi_smz, &e_phi_gsmx, &e_phi_gsmy, &e_phi_gsmz, &direction);
+        double e_mu_smx = e_mu_sm[0]; double e_mu_smy = e_mu_sm[1]; double e_mu_smz = e_mu_sm[2];
+        double e_mu_gsmx, e_mu_gsmy, e_mu_gsmz;
+        smgsm(&e_mu_smx, &e_mu_smy, &e_mu_smz, &e_mu_gsmx, &e_mu_gsmy, &e_mu_gsmz, &direction);
+
         double density = plasma_density(plasmasphere_model, epoch_time, pt(0), pt(1), pt(2));
         double vA;
         if (density > 1e-10) {
@@ -49,8 +88,12 @@ Eigen::MatrixXd trace_field_line(const Vector3d& start_point, double step_size, 
         }else {
             vA = 0.0034 * B.norm() / sqrt(1e-10);
         }
-        VectorXd row(14);
-        row << pt, B, E, Bw, density, vA;
+        VectorXd row(29);
+        row << pt, B, E, Bw, density, vA,
+            sm, L, MLT, MLAT,
+            e_L_gsmx, e_L_gsmy, e_L_gsmz,
+            e_phi_gsmx, e_phi_gsmy, e_phi_gsmz,
+            e_mu_gsmx, e_mu_gsmy, e_mu_gsmz;
         return row;
     };
 
@@ -94,8 +137,8 @@ Eigen::MatrixXd trace_field_line(const Vector3d& start_point, double step_size, 
     // 反向追踪点插入到最前面
     points_info.insert(points_info.begin(), backward_info.rbegin(), backward_info.rend());
 
-    // 转为MatrixXd
-    Eigen::MatrixXd result(points_info.size(),14);
+    // 转为MatrixXd，列数应与每个row一致（即29）
+    Eigen::MatrixXd result(points_info.size(), points_info[0].size());
     for (size_t i = 0; i < points_info.size(); ++i) {
         result.row(i) = points_info[i];
     }
@@ -218,9 +261,9 @@ int main() {
             << starting_points[i].transpose() << " RE" << endl;
         Eigen::MatrixXd field_line_data = trace_field_line(starting_points[i], step_size, outer_limit, max_steps, epoch_time);
 
-        // 构造输出文件名
+        // 构造输出文件名，坐标保留两位小数
         char fname[256];
-        snprintf(fname, sizeof(fname), "Trace_(%.6f_%.6f_%.6f).fld",
+        snprintf(fname, sizeof(fname), "Trace_(%.2f_%.2f_%.2f).fld",
              starting_points[i](0), starting_points[i](1), starting_points[i](2));
         string outFilePath = exeDir + "field_line" + sep + fname;
 
@@ -253,13 +296,15 @@ int main() {
         fout.write(reinterpret_cast<const char*>(&nrow), sizeof(nrow));
         fout.write(reinterpret_cast<const char*>(&ncol), sizeof(ncol));
 
-        // 写磁力线矩阵数据，依次写入每个点的 x y z Bx By Bz Ex Ey Ez Bw_x Bw_y Bw_z density Alfven_speed
+        // 写磁力线矩阵数据，依次写入每个点的所有物理量
         for (int r = 0; r < field_line_data.rows(); ++r) {
-            double buffer[14];
-            for (int c = 0; c < 14; ++c) {
-            buffer[c] = field_line_data(r, c);
+            int buffer_size = static_cast<int>(field_line_data.cols());
+            cout << "buffer size: " << buffer_size << endl;
+            double buffer[buffer_size];
+            for (int c = 0; c < buffer_size; ++c) {
+                buffer[c] = field_line_data(r, c);
             }
-            fout.write(reinterpret_cast<const char*>(buffer), 14 * sizeof(double));
+            fout.write(reinterpret_cast<const char*>(buffer), buffer_size * sizeof(double));
         }
         fout.close();
         cout << "Field line data written to: " << outFilePath << endl;

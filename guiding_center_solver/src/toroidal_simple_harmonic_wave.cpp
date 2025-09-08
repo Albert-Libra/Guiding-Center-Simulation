@@ -74,7 +74,7 @@ std::string find_wave_file(const std::string& directory) {
         closedir(dir);
     }
 #endif
-    return ""; // 没有找到 .pol 文件
+    return ""; // 没有找到 .tor 文件
 }
 
 // 读取配置文件函数
@@ -125,7 +125,7 @@ bool read_wave_config(const std::string& filename, WaveConfig& config) {
     
     // Check if we have enough values
     if (values.size() < 9) {
-        std::cerr << "Error: .pol file should contain 9 values, but found " << values.size() << std::endl;
+        std::cerr << "Error: .tor file should contain 9 values, but found " << values.size() << std::endl;
         config.valid = false;
         return false;
     }
@@ -144,7 +144,7 @@ bool read_wave_config(const std::string& filename, WaveConfig& config) {
     file.close();
     config.valid = true;
     std::cout << "Wave configuration loaded from " << filename << std::endl;
-    std::cout << "Loaded " << values.size() << " parameters from .pol file" << std::endl;
+    std::cout << "Loaded " << values.size() << " parameters from .tor file" << std::endl;
     return true;
 }
 
@@ -162,7 +162,7 @@ const WaveConfig& get_config() {
             "/input"
 #endif
         );
-        std::cout << "Searching for .pol files in " << input_dir << " ..." << std::endl;
+        std::cout << "Searching for .tor files in " << input_dir << " ..." << std::endl;
 
         std::string wave_file = find_wave_file(input_dir);
 
@@ -173,15 +173,15 @@ const WaveConfig& get_config() {
             char abs_path[1024];
 #ifdef _WIN32
             if (_fullpath(abs_path, input_dir.c_str(), sizeof(abs_path)) != nullptr) {
-                std::cerr << "Warning: No .pol configuration file found in input directory: " << abs_path << std::endl;
+                std::cerr << "Warning: No .tor configuration file found in input directory: " << abs_path << std::endl;
             } else {
-                std::cerr << "Warning: No .pol configuration file found in input directory (failed to get absolute path)." << std::endl;
+                std::cerr << "Warning: No .tor configuration file found in input directory (failed to get absolute path)." << std::endl;
             }
 #else
             if (realpath(input_dir.c_str(), abs_path) != nullptr) {
-                std::cerr << "Warning: No .pol configuration file found in input directory: " << abs_path << std::endl;
+                std::cerr << "Warning: No .tor configuration file found in input directory: " << abs_path << std::endl;
             } else {
-                std::cerr << "Warning: No .pol configuration file found in input directory (failed to get absolute path)." << std::endl;
+                std::cerr << "Warning: No .tor configuration file found in input directory (failed to get absolute path)." << std::endl;
             }
 #endif
         }
@@ -374,4 +374,4 @@ Vector3d B_wave(const double& t, const double& xgsm, const double& ygsm, const d
     return B_gsm;
 }
 
-} // namespace simple_pol_wave
+} // namespace simple_tor_wave

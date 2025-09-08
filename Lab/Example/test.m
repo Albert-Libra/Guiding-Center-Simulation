@@ -1,8 +1,8 @@
 % 调用 Tracer.exe 可执行文件，使用相对路径
 system('.\Tracer.exe');
-data = read_fld(fullfile('.\\field_line', 'Trace_(1.400000_0.000000_0.000000).fld'));
+data = read_fld(fullfile('.\field_line', 'Trace_(1.40_0.00_0.00).fld'));
 figure;
-plot3(data.x, data.y, data.z, 'b-');
+plot3(data.r_gsm(:,1), data.r_gsm(:,2), data.r_gsm(:,3), 'b-');
 axis equal;
 hold on;
 ax1 = gca;

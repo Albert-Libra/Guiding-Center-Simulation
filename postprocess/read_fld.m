@@ -33,28 +33,28 @@ function data = read_fld(filename)
     data.nrow = nrow;
     data.ncol = ncol;
 
-    % 读取主数据 - 修复：C++按行写入，MATLAB需逐行读取
+    % 读取主数据 - C++按行写入，MATLAB需逐行读取
     raw = zeros(nrow, ncol);
     for i = 1:nrow
         raw(i, :) = fread(fid, ncol, 'double')';
     end
     fclose(fid);
 
-    data.x = raw(:, 1);
-    data.y = raw(:, 2);
-    data.z = raw(:, 3);
-    data.Bx = raw(:, 4);
-    data.By = raw(:, 5);
-    data.Bz = raw(:, 6);
-    data.Ex = raw(:, 7);
-    data.Ey = raw(:, 8);
-    data.Ez = raw(:, 9);
-    data.Bw_x = raw(:, 10);
-    data.Bw_y = raw(:, 11);
-    data.Bw_z = raw(:, 12);
-    data.density = raw(:, 13);
-    data.Alfven_speed = raw(:, 14);
+    % 字段映射（共32列）
+    data.r_gsm = raw(:, 1:3);         % GSM坐标 [x y z]
+    data.B = raw(:, 4:6);            % GSM磁场 [Bx By Bz]
+    data.E = raw(:, 7:9);            % GSM电场 [Ex Ey Ez]
+    data.Bw = raw(:, 10:12);         % GSM波动磁场 [Bw_x Bw_y Bw_z]
+    data.density = raw(:, 13);       % 等离子体密度
+    data.Alfven_speed = raw(:, 14);  % 阿尔芬速度
+    data.r_sm = raw(:, 15:17);       % SM坐标 [xsm ysm zsm]
+    data.L = raw(:, 18);             % L壳参数
+    data.MLT = raw(:, 19);           % MLT
+    data.MLAT = raw(:, 20);          % MLAT
+    data.eL_gsm = raw(:, 21:23);     % 偶极L方向基矢 GSM [x y z]
+    data.ePhi_gsm = raw(:, 24:26);   % 偶极phi方向基矢 GSM [x y z]
+    data.eMu_gsm = raw(:, 27:29);    % 偶极mu方向基矢 GSM [x y z]
 
-    % 可选：保留原始矩阵
-    data.mat = raw;
+    % % 可选：保留原始矩阵
+    % data.mat = raw;
 end
