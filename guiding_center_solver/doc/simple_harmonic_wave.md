@@ -79,7 +79,9 @@ The azimuthal component of the simple wave's electric field can be given as:
 E_\varphi = E_0\cos(m\varphi-\omega t)\sin(n\theta)\exp\left(-(\frac{\ln(L/L_0)}{L_w})^2\right)
 ```
 
-where $m$ and $n$ are integers. In MHD wave, the parallel component $E_\mu=0$. According to the Maxwell's Equations, the radial component should satisfy:
+where $m$ and $n$ are integers. In MHD wave, the parallel component $E_\mu=0$. The expression $\sin(n\theta)$ is a simple form of field-aligned standing wave. It should be noted that this form is only proper for large $L$ value.
+
+According to the Maxwell's Equations, the radial component should satisfy:
 
 ```math
 \frac{\partial E_\varphi}{h_\varphi\partial\varphi}+\frac{\partial E_L}{h_L\partial L}=0\\
@@ -98,7 +100,9 @@ According to the Maxwell's Equations,the magnetic field satisfies:
 
 ```math
 \frac{\partial B_L}{\partial t}=-\frac{1}{h_\varphi h_\mu}\left(-\frac{\partial(h_\varphi E_\varphi)}{\partial\mu}\right)\\
+
 \frac{\partial B_\varphi}{\partial t}=-\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L E_L)}{\partial\mu}\right)\\
+
 \frac{\partial B_\mu}{\partial t}=-\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\varphi)}{\partial L}-\frac{\partial(h_LE_L)}{\partial\varphi}\right)
 
 ```
