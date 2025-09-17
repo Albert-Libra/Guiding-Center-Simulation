@@ -90,7 +90,7 @@ z = (\sqrt{\sqrt{2}a/\sqrt{y} - 2y} - \sqrt{2y})/2
 The azimuthal component of the simple wave's electric field is given by:
 
 ```math
-E_\varphi = E_0\cos(m\varphi-\omega t+\varphi_0)\sin\left(n\frac{\pi(\theta-\theta_f)}{\pi - \theta_f}\right)
+E_\varphi = E_0\cos(m\varphi-\omega t+\varphi_0)\sin\left(n\frac{\pi(\theta-\theta_f)}{\pi - 2\theta_f}\right)
 ```
 
 where $m$ is the azimuthal wave number, and $n$ is the order of the standing wave. Both are integers. $\theta_f$ corresponds to the foot of the field line on the ionosphere, which can be estimated by $\sin^2\theta_f=1/L$. Since the drift shell is very thin, the radial structure of the wave is neglected. For poloidal mode ULF waves, the electric field is dominated by $E_\varphi$, while the other components can be ignored.
@@ -124,7 +124,7 @@ The partial derivatives of the electric field can be computed numerically.
 Similar to the poloidal mode, the radial electric field component is given by:
 
 ```math
-E_L = E_0\cos(m\varphi-\omega t+\varphi_0)\sin\left(n\frac{\pi(\theta-\theta_f)}{\pi - \theta_f}\right)
+E_L = E_0\cos(m\varphi-\omega t+\varphi_0)\sin\left(n\frac{\pi(\theta-\theta_f)}{\pi - 2\theta_f}\right)
 ```
 
 which is the dominant electric field component of the toroidal mode wave.
@@ -156,7 +156,7 @@ The partial derivatives of the electric field can be computed numerically.
 Since Maxwell's equations are linear, we can obtain a broadband wave by linearly combining wave modes of different frequencies. In this model, we select several monochromatic waves with frequencies distributed geometrically around the target frequency. These components are linearly combined using Gaussian-distributed weights centered at the target frequency. The initial phases of the waves at different frequencies are assigned randomly. That is:
 
 ```math
-E=\sum_i^N E_{0,i}\cos(m\varphi-\omega_i t+\varphi_{0,\mathrm{random}})\sin\left(n\frac{\pi(\theta-\theta_f)}{\pi - \theta_f}\right)
+E=\sum_i^N E_{0,i}\cos(m\varphi-\omega_i t+\varphi_{0,\rm{random}})\sin\left(n\frac{\pi(\theta-\theta_f)}{\pi - 2\theta_f}\right)
 ```
 
 Here, $E_{0,i}$ is given by a Gaussian function and $\omega_i$ is distributed as a geometric sequence.
