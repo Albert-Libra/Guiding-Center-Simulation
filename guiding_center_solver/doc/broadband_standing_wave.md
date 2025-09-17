@@ -5,24 +5,36 @@
 Here we use an orthogonal dipole coordinate system like:
 
 ```math
-L=\frac{r}{R_E\sin^2\theta}\\
-\varphi=\varphi\\
+L=\frac{r}{R_E\sin^2\theta}
+```
+```math
+\varphi=\varphi
+```
+```math
 \mu = \frac{\cos\theta}{L^2\sin^4\theta}
 ```
 
 They represent the radial, azimuthal, and parallel degrees of freedom, respectively. Their corresponding direction vectors are:
 
 ```math
-\vec e_L=\frac{\sin\theta\vec e_r-2\cos\theta\vec e_\theta}{\sqrt{1+3\cos^2\theta}}\\
-\vec e_\varphi=\vec e_\varphi\\
+\vec e_L=\frac{\sin\theta\vec e_r-2\cos\theta\vec e_\theta}{\sqrt{1+3\cos^2\theta}}
+```
+```math
+\vec e_\varphi=\vec e_\varphi
+```
+```math
 \vec e_\mu=-\frac{2\cos\theta\vec e_r+\sin\theta\vec e_\theta}{\sqrt{1+3\cos^2\theta}}
 ```
 
 And the corresponding scale factors are:
 
 ```math
-h_L = \frac{R_E\sin^3\theta}{\sqrt{1+3\cos^2\theta}}\\
-h_\varphi = R_EL\sin^3\theta\\
+h_L = \frac{R_E\sin^3\theta}{\sqrt{1+3\cos^2\theta}}
+```
+```math
+h_\varphi = R_EL\sin^3\theta
+```
+```math
 h_\mu=\frac{R_EL^3\sin^6\theta}{\sqrt{1+3\cos^2\theta}}
 ```
 
@@ -65,7 +77,9 @@ with this introduced $y$, the equation above becomes
 therefore
 
 ```math
-z = (\sqrt{\sqrt{2}a/\sqrt{y} - 2y} - \sqrt{2y})/2\\
+z = (\sqrt{\sqrt{2}a/\sqrt{y} - 2y} - \sqrt{2y})/2
+```
+```math
 \theta = \left\{\begin{matrix}\arcsin(\sqrt z)\ \ \ (\mu>0)\\\pi -\arcsin(\sqrt z)\ \ \ (\mu<0)\end{matrix}\right.
 ```
 
@@ -86,16 +100,18 @@ where $m$ is the azimuthal wave number, and $n$ is the order of the standing wav
 According to Maxwell's equations, the magnetic field satisfies:
 
 ```math
-\frac{\partial B_L}{\partial t}=-\frac{1}{h_\varphi h_\mu}\left(-\frac{\partial(h_\varphi E_\varphi)}{\partial\mu}\right)\\
-
+\frac{\partial B_L}{\partial t}=-\frac{1}{h_\varphi h_\mu}\left(-\frac{\partial(h_\varphi E_\varphi)}{\partial\mu}\right)
+```
+```math
 \frac{\partial B_\mu}{\partial t}=-\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\varphi)}{\partial L}-\frac{\partial(h_LE_L)}{\partial\varphi}\right)
 ```
 
 Because $t$ and $\varphi$ only appear in the cosine function in $E$, the calculation can be simplified. Let $E_\varphi=\tilde E_\varphi\cos(m\varphi-\omega t+\varphi_0)$, then the magnetic field can be written as:
 
 ```math
-B_L=-\frac{\sin(m\varphi-\omega t)}{\omega}\frac{1}{h_\varphi h_\mu}\left(\frac{\partial(h_\varphi \tilde E_\varphi)}{\partial\mu}\right)\\
-
+B_L=-\frac{\sin(m\varphi-\omega t)}{\omega}\frac{1}{h_\varphi h_\mu}\left(\frac{\partial(h_\varphi \tilde E_\varphi)}{\partial\mu}\right)
+```
+```math
 B_\mu=\frac{\sin(m\varphi-\omega t)}{\omega}\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi \tilde E_\varphi)}{\partial L}\right)
 ```
 
@@ -118,16 +134,18 @@ which is the dominant electric field component of the toroidal mode wave.
 According to Maxwell's equations, the magnetic field satisfies:
 
 ```math
-\frac{\partial B_\varphi}{\partial t}=-\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L E_L)}{\partial\mu}\right)\\
-
+\frac{\partial B_\varphi}{\partial t}=-\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L E_L)}{\partial\mu}\right)
+```
+```math
 \frac{\partial B_\mu}{\partial t}=-\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi E_\varphi)}{\partial L}-\frac{\partial(h_LE_L)}{\partial\varphi}\right)
 ```
 
 Let $E_L=\tilde E_L\cos(m\varphi-\omega t+\varphi_0)$, then the magnetic field can be written as:
 
 ```math
-B_\varphi=\frac{\sin(m\varphi-\omega t)}{\omega}\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L \tilde E_L)}{\partial\mu}\right)\\
-
+B_\varphi=\frac{\sin(m\varphi-\omega t)}{\omega}\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L \tilde E_L)}{\partial\mu}\right)
+```
+```math
 B_\mu=-\frac{m}{\omega}\frac{1}{ h_\varphi}E_L
 ```
 
