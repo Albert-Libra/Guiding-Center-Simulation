@@ -59,6 +59,9 @@ endif()
 # 查找所有cpp文件
 file(GLOB ALL_SRC src/*.cpp)
 
+# 移除示例文件（不需要编译到主程序中）
+list(REMOVE_ITEM ALL_SRC ${CMAKE_SOURCE_DIR}/src/path_utils_example.cpp)
+
 # Solver主程序（排除Diagnosor.cpp和field_line_tracer.cpp）
 set(SOLVER_SRC ${ALL_SRC})
 list(REMOVE_ITEM SOLVER_SRC ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp)
@@ -76,6 +79,9 @@ set(TRACER_SRC ${ALL_SRC})
 list(REMOVE_ITEM TRACER_SRC ${CMAKE_SOURCE_DIR}/src/Solver.cpp)
 list(REMOVE_ITEM TRACER_SRC ${CMAKE_SOURCE_DIR}/src/Diagnosor.cpp)
 add_executable(Tracer ${TRACER_SRC})
+
+# PathUtils示例程序（可选，用于测试路径工具）
+add_executable(PathUtilsExample src/path_utils_example.cpp src/path_utils.cpp)
 
 # 生成geopack_caller动态链接库，并指定输出路径为 postprocess/include
 add_library(geopack_caller SHARED src/geopack_caller.cpp)

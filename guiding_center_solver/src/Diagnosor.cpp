@@ -10,21 +10,13 @@
 #include "field_calculator.h"
 #include "particle_calculator.h"
 #include "geopack_caller.h"
+#include "path_utils.h"
 
 #ifdef _WIN32
     #include <process.h>
-    #include <libloaderapi.h>
-    #include <io.h>
-    #include <direct.h>
-    #include <windows.h>
-    std::string sep = "\\";
 #else
-    #include <sys/stat.h>
-    #include <unistd.h>
-    #include <dirent.h>
     #include <sys/types.h>
     #include <sys/wait.h>
-    std::string sep = "/";
 #endif
 
 using namespace std;
@@ -34,41 +26,34 @@ const double c = 47.055; // Speed of light in RE/s
 string exeDir;
 
 int diagnose_gct(string filePath){
-    // If in child process mode, reinitialize exeDir
+    // If in child process mode, reinitialize exeDir using PathUtils
     if (exeDir.empty()) {
-        char exePath[1024];
-        #ifdef _WIN32
-            GetModuleFileNameA(NULL, exePath, sizeof(exePath));
-            exeDir = string(exePath);
-            exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-            exeDir += "\\";
-        #else
-            ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
-            exeDir = string(exePath, (count > 0) ? count : 0);
-            exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-            exeDir += "/";
-        #endif
+        try {
+            exeDir = PathUtils::ensureTrailingSeparator(PathUtils::getExecutableDirectory());
+        } catch (const std::exception& e) {
+            cerr << "Failed to get executable directory: " << e.what() << endl;
+            return 1;
+        }
     }
 
-    // Log file name is the same as para file, only extension is .log
-    #ifdef _WIN32
-        string logDir = exeDir + "log\\";
-        if (_access(logDir.c_str(), 0) != 0) {_mkdir(logDir.c_str());}
-        string outputDir = exeDir + "output\\";
-        if (_access(outputDir.c_str(), 0) != 0) _mkdir(outputDir.c_str());
-    #else
-        string logDir = exeDir + "log/";
-        struct stat st_log = {0};
-        if (stat(logDir.c_str(), &st_log) == -1) {mkdir(logDir.c_str(), 0755);}
-        string outputDir = exeDir + "output/";
-        struct stat st = {0};
-        if (stat(outputDir.c_str(), &st) == -1) mkdir(outputDir.c_str(), 0755);
-    #endif
-    size_t last_slash = filePath.find_last_of("\\/");
-    string para_filename = (last_slash == string::npos) ? filePath : filePath.substr(last_slash + 1);
-    size_t dot_pos = para_filename.find_last_of('.');
-    string log_filename = (dot_pos == string::npos) ? para_filename + ".log" : para_filename.substr(0, dot_pos) + ".log";
-    string logFilePath = logDir + log_filename;
+    // Create directories using PathUtils
+    string logDir = PathUtils::joinPath(exeDir, "log");
+    if (!PathUtils::createDirectory(logDir)) {
+        cerr << "Failed to create log directory: " << logDir << endl;
+        return 1;
+    }
+    
+    string outputDir = PathUtils::joinPath(exeDir, "output");
+    if (!PathUtils::createDirectory(outputDir)) {
+        cerr << "Failed to create output directory: " << outputDir << endl;
+        return 1;
+    }
+
+    // Extract filenames using PathUtils
+    string para_filename = PathUtils::getFilename(filePath);
+    string base_filename = PathUtils::getBasename(para_filename);
+    string log_filename = base_filename + ".log";
+    string logFilePath = PathUtils::joinPath(logDir, log_filename);
     
     ofstream logFile(logFilePath, ios::out | ios::app);
     if (!logFile) {
@@ -133,19 +118,10 @@ int diagnose_gct(string filePath){
         mu = adiabatic_1st(p, pa, E0, Bt);
     }
 
-    // file name for output
-    // char filename[256];
-    // snprintf(filename, sizeof(filename),
-    //          "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f",
-    //         E0, q, static_cast<int>(round(t_ini)), xgsm, ygsm, zgsm, Ek, pa);
-    string filename = (dot_pos == string::npos) ? para_filename : para_filename.substr(0, dot_pos);
-    #ifdef _WIN32
-        string outFilePath = exeDir + "output\\" + filename + ".gct";
-        string diagFilePath = exeDir + "output\\" + filename + ".gcd";
-    #else
-        string outFilePath = exeDir + "output/" + filename + ".gct";
-        string diagFilePath = exeDir + "output/" + filename + ".gcd";
-    #endif
+    // file name for output using PathUtils
+    string filename = base_filename;
+    string outFilePath = PathUtils::joinPath(outputDir, filename + ".gct");
+    string diagFilePath = PathUtils::joinPath(outputDir, filename + ".gcd");
 
     ifstream infile(outFilePath, ios::binary);
     if (!infile) {
@@ -344,51 +320,20 @@ int main(int argc, char* argv[]) {
 
     cout << "Diagnosing simulation result ..." << endl;
 
-    // Get the current executable path
-    char exePath[1024];
-#ifdef _WIN32
-    GetModuleFileNameA(NULL, exePath, sizeof(exePath));
-    exeDir = string(exePath);
-    exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-    exeDir += "\\";
-    string inputDir = exeDir + "input\\";
-    string logDir = exeDir + "log\\";
-    string mainLogPath = logDir + "main.log";
-#else
-    ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
-    exeDir = string(exePath, (count > 0) ? count : 0);
-    exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-    exeDir += "/";
-    string inputDir = exeDir + "input/";
-    string logDir = exeDir + "log/";
-    string mainLogPath = logDir + "main.log";
-#endif
+    // Get the current executable directory using PathUtils
+    try {
+        exeDir = PathUtils::ensureTrailingSeparator(PathUtils::getExecutableDirectory());
+    } catch (const std::exception& e) {
+        cerr << "Failed to get executable directory: " << e.what() << endl;
+        return 1;
+    }
+    
+    string inputDir = PathUtils::joinPath(exeDir, "input");
+    string logDir = PathUtils::joinPath(exeDir, "log");
+    string mainLogPath = PathUtils::joinPath(logDir, "main.log");
 
-    // Read all .para files in inputDir
-    vector<string> para_files;
-#ifdef _WIN32
-    string search_path = inputDir + "*.para";
-    struct _finddata_t fileinfo;
-    intptr_t handle = _findfirst(search_path.c_str(), &fileinfo);
-    if (handle != -1) {
-        do {
-            para_files.push_back(inputDir + fileinfo.name);
-        } while (_findnext(handle, &fileinfo) == 0);
-        _findclose(handle);
-    }
-#else
-    DIR* dir = opendir(inputDir.c_str());
-    if (dir) {
-        struct dirent* entry;
-        while ((entry = readdir(dir)) != nullptr) {
-            string fname = entry->d_name;
-            if (fname.size() > 5 && fname.substr(fname.size() - 5) == ".para") {
-                para_files.push_back(inputDir + fname);
-            }
-        }
-        closedir(dir);
-    }
-#endif
+    // Read all .para files in inputDir using PathUtils
+    vector<string> para_files = PathUtils::findFilesWithExtension(inputDir, ".para", true);
 
     if (para_files.empty()) {
         cerr << "No .para files found in " << inputDir << endl;

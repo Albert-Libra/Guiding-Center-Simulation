@@ -8,14 +8,8 @@
 #include <thread>
 
 #ifdef _WIN32
-    #include <libloaderapi.h>
-    #include <io.h>
-    #include <direct.h>
     #include <process.h>
 #else
-    #include <sys/stat.h>
-    #include <unistd.h>
-    #include <dirent.h>
     #include <sys/types.h>
     #include <sys/wait.h>
 #endif
@@ -23,11 +17,12 @@
 #include "field_calculator.h"
 #include "particle_calculator.h"
 #include "singular_particle.h"
+#include "path_utils.h"
 
 using namespace std;
 using namespace Eigen;
 
-string exeDir;
+string exeDir;  // 全局变量，供其他源文件使用
 
 int main(int argc, char* argv[])
 {
@@ -41,65 +36,34 @@ int main(int argc, char* argv[])
 
     // This is the main process mode, where it will read all parameter files and start child processes for each file
     
-    // Get the current executable path
-    char exePath[1024];
-#ifdef _WIN32
-    GetModuleFileNameA(NULL, exePath, sizeof(exePath));
-    exeDir = string(exePath);
-    exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-    exeDir += "\\";
-#else
-    ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
-    exeDir = string(exePath, (count > 0) ? count : 0);
-    exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-    exeDir += "/";
-#endif
-
-    // Create log directory if it doesn't exist
-    #ifdef _WIN32
-        string logDir = exeDir + "log\\";
-        if (_access(logDir.c_str(), 0) != 0) {_mkdir(logDir.c_str());}
-    #else
-        string logDir = exeDir + "log/";
-        struct stat st_log = {0};
-        if (stat(logDir.c_str(), &st_log) == -1) {mkdir(logDir.c_str(), 0755);}
-    #endif
-    
-    // Read all .para files in exeDir/input
-    vector<string> para_files;
-#ifdef _WIN32
-    string search_path = exeDir + "input\\*.para";
-    struct _finddata_t fileinfo;
-    intptr_t handle = _findfirst(search_path.c_str(), &fileinfo);
-    if (handle != -1) {
-        do {
-            para_files.push_back(exeDir + "input\\" + fileinfo.name);
-        } while (_findnext(handle, &fileinfo) == 0);
-        _findclose(handle);
-    }
-#else
-    string inputDir = exeDir + "input/";
-    DIR* dir = opendir(inputDir.c_str());
-    if (dir) {
-        struct dirent* entry;
-        while ((entry = readdir(dir)) != nullptr) {
-            string fname = entry->d_name;
-            if (fname.size() > 5 && fname.substr(fname.size() - 5) == ".para") {
-                para_files.push_back(inputDir + fname);
-            }
-        }
-        closedir(dir);
-    }
-#endif
-
-    // For demonstration, just use the first .para file found
-    if (para_files.empty()) {
-        cerr << "No .para files found in " << exeDir + "input\\"<< endl;
+    // Get the current executable directory using PathUtils and set global variable
+    try {
+        exeDir = PathUtils::ensureTrailingSeparator(PathUtils::getExecutableDirectory());
+    } catch (const std::exception& e) {
+        cerr << "Failed to get executable directory: " << e.what() << endl;
         exit(1);
     }
 
-    // create main log file
-    string mainLogPath = logDir + "main.log";
+    // Create log directory if it doesn't exist using PathUtils
+    string logDir = PathUtils::joinPath(exeDir, "log");
+    if (!PathUtils::createDirectory(logDir)) {
+        cerr << "Failed to create log directory: " << logDir << endl;
+        exit(1);
+    }
+    logDir = PathUtils::ensureTrailingSeparator(logDir);
+    
+    // Read all .para files in exeDir/input using PathUtils
+    string inputDir = PathUtils::joinPath(exeDir, "input");
+    vector<string> para_files = PathUtils::findFilesWithExtension(inputDir, ".para", true);
+
+    // For demonstration, just use the first .para file found
+    if (para_files.empty()) {
+        cerr << "No .para files found in " << inputDir << endl;
+        exit(1);
+    }
+
+    // create main log file using PathUtils
+    string mainLogPath = PathUtils::joinPath(logDir, "main.log");
     ofstream mainLogFile(mainLogPath, ios::out | ios::trunc);
     if (!mainLogFile) {
         cerr << "Failed to create main log file: " << mainLogPath << endl;
@@ -215,7 +179,7 @@ int main(int argc, char* argv[])
     mainLogFile << "Total processing time: " << total_elapsed.count() << " seconds" << endl;
     mainLogFile << "Average time per file: " << (total_elapsed.count() / para_files.size()) << " seconds" << endl;
     mainLogFile << "Completion time: " << timeBuffer << endl;
-    mainLogFile << "All output files should be available in: " << exeDir << "output\\" << endl;
+    mainLogFile << "All output files should be available in: " << PathUtils::joinPath(exeDir, "output") << endl;
     mainLogFile << "Individual simulation logs available in: " << logDir << endl;
     mainLogFile << "=== END OF SOLVER MAIN LOG ===" << endl;
     

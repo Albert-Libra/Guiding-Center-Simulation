@@ -3,18 +3,12 @@
 #include "geopack_caller.h"
 #include "coordinates_transfer.h"
 #include "poloidal_simple_harmonic_wave.h"
+#include "path_utils.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cmath>
 #include <vector>
-
-// 跨平台文件系统头文件
-#ifdef _WIN32
-    #include <windows.h>
-#else
-    #include <dirent.h>
-#endif
 
 // 全局变量，由主程序赋值
 extern std::string exeDir;
@@ -44,39 +38,9 @@ struct WaveConfig {
                    L_width(0.5), L0(1.4), dmu(0.01), dL(0.01), phi0(0.0), valid(false) {}
 };
 
-// 搜索任何 .pol 文件的函数（跨平台）
+// 搜索任何 .pol 文件的函数（使用PathUtils）
 std::string find_wave_file(const std::string& directory) {
-#ifdef _WIN32
-    // Windows 实现
-    std::string search_path = directory + "\\*.pol";
-    WIN32_FIND_DATAA find_data;
-    HANDLE hFind = FindFirstFileA(search_path.c_str(), &find_data);
-    
-    if (hFind != INVALID_HANDLE_VALUE) {
-        std::string found_file = directory + "\\" + find_data.cFileName;
-        FindClose(hFind);
-        std::cout << "Found wave file (Windows): " << found_file << std::endl;
-        return found_file;
-    }
-#else
-    // Linux/Unix 实现
-    DIR* dir = opendir(directory.c_str());
-    if (dir != nullptr) {
-        struct dirent* entry;
-        while ((entry = readdir(dir)) != nullptr) {
-            std::string filename = entry->d_name;
-            // 检查文件名是否以 .pol 结尾
-            if (filename.length() > 5 && filename.substr(filename.length() - 5) == ".pol") {
-                closedir(dir);
-                std::string found_file = directory + "/" + filename;
-                std::cout << "Found wave file (Linux): " << found_file << std::endl;
-                return found_file;
-            }
-        }
-        closedir(dir);
-    }
-#endif
-    return ""; // 没有找到 .pol 文件
+    return PathUtils::findFirstFileWithExtension(directory, ".pol");
 }
 
 // 读取配置文件函数
@@ -156,14 +120,8 @@ const WaveConfig& get_config() {
     static bool loaded = false;
     
     if (!loaded) {
-        // 使用主程序传递的exeDir
-        std::string input_dir = exeDir + (exeDir.empty() ? "input" :
-#ifdef _WIN32
-            "\\input"
-#else
-            "/input"
-#endif
-        );
+        // 使用主程序传递的exeDir和PathUtils
+        std::string input_dir = PathUtils::joinPath(exeDir, "input");
         std::cout << "Searching for .pol files in " << input_dir << " ..." << std::endl;
 
         std::string wave_file = find_wave_file(input_dir);
@@ -172,20 +130,7 @@ const WaveConfig& get_config() {
         if (!wave_file.empty()) {
             success = read_wave_config(wave_file, config);
         } else {
-            char abs_path[1024];
-#ifdef _WIN32
-            if (_fullpath(abs_path, input_dir.c_str(), sizeof(abs_path)) != nullptr) {
-                std::cerr << "Warning: No .pol configuration file found in input directory: " << abs_path << std::endl;
-            } else {
-                std::cerr << "Warning: No .pol configuration file found in input directory (failed to get absolute path)." << std::endl;
-            }
-#else
-            if (realpath(input_dir.c_str(), abs_path) != nullptr) {
-                std::cerr << "Warning: No .pol configuration file found in input directory: " << abs_path << std::endl;
-            } else {
-                std::cerr << "Warning: No .pol configuration file found in input directory (failed to get absolute path)." << std::endl;
-            }
-#endif
+            std::cerr << "Warning: No .pol configuration file found in input directory: " << input_dir << std::endl;
         }
 
         if (success) {

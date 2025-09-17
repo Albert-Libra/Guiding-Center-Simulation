@@ -8,16 +8,8 @@
 #include <thread>
 #include <cstdint> // 添加头文件
 
-#ifdef _WIN32
-    #include <libloaderapi.h>
-    #include <io.h>
-    #include <direct.h>
-#else
-    #include <sys/stat.h>
-    #include <unistd.h>
-#endif
-
 #include "singular_particle.h"
+#include "path_utils.h"
 #include "field_calculator.h"
 #include "particle_calculator.h"
 
@@ -107,29 +99,24 @@ VectorXd dydt(const VectorXd& arr_in)
 
 int singular_particle(const std::string& para_file)
 {
-    // 1. 目录分隔符和创建
-    #ifdef _WIN32
-        string logDir = exeDir + "log\\";
-        if (_access(logDir.c_str(), 0) != 0) {_mkdir(logDir.c_str());}
-        string outputDir = exeDir + "output\\";
-        if (_access(outputDir.c_str(), 0) != 0) _mkdir(outputDir.c_str());
-        string sep = "\\";
-    #else
-        string logDir = exeDir + "log/";
-        struct stat st_log = {0};
-        if (stat(logDir.c_str(), &st_log) == -1) {mkdir(logDir.c_str(), 0755);}
-        string outputDir = exeDir + "output/";
-        struct stat st = {0};
-        if (stat(outputDir.c_str(), &st) == -1) mkdir(outputDir.c_str(), 0755);
-        string sep = "/";
-    #endif
+    // 1. 创建目录结构使用PathUtils
+    string logDir = PathUtils::joinPath(exeDir, "log");
+    if (!PathUtils::createDirectory(logDir)) {
+        cerr << "Failed to create log directory: " << logDir << endl;
+        return 1;
+    }
+    
+    string outputDir = PathUtils::joinPath(exeDir, "output");
+    if (!PathUtils::createDirectory(outputDir)) {
+        cerr << "Failed to create output directory: " << outputDir << endl;
+        return 1;
+    }
 
     // 2. 日志文件路径
-    size_t last_slash = para_file.find_last_of("\\/");
-    string para_filename = (last_slash == string::npos) ? para_file : para_file.substr(last_slash + 1);
-    size_t dot_pos = para_filename.find_last_of('.');
-    string log_filename = (dot_pos == string::npos) ? para_filename + ".log" : para_filename.substr(0, dot_pos) + ".log";
-    string logFilePath = logDir + log_filename;
+    string para_filename = PathUtils::getFilename(para_file);
+    string base_filename = PathUtils::getBasename(para_filename);
+    string log_filename = base_filename + ".log";
+    string logFilePath = PathUtils::joinPath(logDir, log_filename);
     ofstream logFile(logFilePath, ios::out | ios::trunc);
     if (!logFile) {
         cerr << "Failed to create log file: " << logFilePath << endl;
@@ -198,9 +185,8 @@ int singular_particle(const std::string& para_file)
     }
     para_in.close();
 
-    // 4. 输出文件路径
-    string base_filename = (dot_pos == string::npos) ? para_filename : para_filename.substr(0, dot_pos);
-    string outFilePath = exeDir + "output" + sep + base_filename + ".gct";
+    // 4. 输出文件路径使用PathUtils
+    string outFilePath = PathUtils::joinPath(outputDir, base_filename + ".gct");
     // char filename[256];
     // snprintf(filename, sizeof(filename),
     //          "E0_%.2f_q_%.2f_tini_%d_x_%.2f_y_%.2f_z_%.2f_Ek_%.2f_pa_%.2f.gct",

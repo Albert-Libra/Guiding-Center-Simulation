@@ -6,21 +6,11 @@
 #include <string>
 #include <Eigen/Dense>
 
-#ifdef _WIN32
-    #include <windows.h>
-    #include <io.h>
-    std::string sep = "\\";
-#else
-    #include <dirent.h>
-    #include <unistd.h>
-    #include <climits>
-    std::string sep = "/";
-#endif
-
 #include "field_calculator.h"
 #include "plasmasphere_model.h"
 #include "coordinates_transfer.h"
 #include "geopack_caller.h"
+#include "path_utils.h"
 
 using namespace std;
 using namespace Eigen;
@@ -148,56 +138,27 @@ Eigen::MatrixXd trace_field_line(const Vector3d& start_point, double step_size, 
 int main() {
     cout << "Field Line Traceing ..." << endl;
 
-    // Get the current executable path
-    char exePath[1024];
-#ifdef _WIN32
-    GetModuleFileNameA(NULL, exePath, sizeof(exePath));
-    exeDir = string(exePath);
-    exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-#else
-    ssize_t count = readlink("/proc/self/exe", exePath, sizeof(exePath));
-    exeDir = string(exePath, (count > 0) ? count : 0);
-    exeDir = exeDir.substr(0, exeDir.find_last_of("\\/"));
-#endif
+    // Get the current executable directory using PathUtils
+    string exeDir;
+    try {
+        exeDir = PathUtils::ensureTrailingSeparator(PathUtils::getExecutableDirectory());
+    } catch (const std::exception& e) {
+        cerr << "Failed to get executable directory: " << e.what() << endl;
+        return 1;
+    }
 
-    exeDir += sep;
-    string fls_dir = exeDir + "field_line" + sep;
+    string fls_dir = PathUtils::joinPath(exeDir, "field_line");
+    if (!PathUtils::directoryExists(fls_dir)) {
+        cerr << "Directory does not exist: " << fls_dir << endl;
+        return 1;
+    }
 
-    // find the first .fls file in the directory
-#ifdef _WIN32
-    string search_path = fls_dir + "*.fls";
-    struct _finddata_t fileinfo;
-    intptr_t handle = _findfirst(search_path.c_str(), &fileinfo);
-    string fls_file;
-    if (handle != -1) {
-        fls_file = fls_dir + fileinfo.name;
-        _findclose(handle);
-    } else {
+    // Find the first .fls file in the directory using PathUtils
+    string fls_file = PathUtils::findFirstFileWithExtension(fls_dir, ".fls");
+    if (fls_file.empty()) {
         cerr << "No .fls file found in " << fls_dir << endl;
         return 1;
     }
-#else
-    DIR* dir = opendir(fls_dir.c_str());
-    string fls_file;
-    if (dir) {
-        struct dirent* entry;
-        while ((entry = readdir(dir)) != nullptr) {
-            string fname = entry->d_name;
-            if (fname.size() > 4 && fname.substr(fname.size() - 4) == ".fls") {
-                fls_file = fls_dir + fname;
-                break;
-            }
-        }
-        closedir(dir);
-        if (fls_file.empty()) {
-            cerr << "No .fls file found in " << fls_dir << endl;
-            return 1;
-        }
-    } else {
-        cerr << "Failed to open directory: " << fls_dir << endl;
-        return 1;
-    }
-#endif
 
     // read the .fls file
     ifstream infile(fls_file);
@@ -265,7 +226,7 @@ int main() {
         char fname[256];
         snprintf(fname, sizeof(fname), "Trace_(%.2f_%.2f_%.2f).fld",
              starting_points[i](0), starting_points[i](1), starting_points[i](2));
-        string outFilePath = exeDir + "field_line" + sep + fname;
+        string outFilePath = PathUtils::joinPath(PathUtils::joinPath(exeDir, "field_line"), fname);
 
         ofstream fout(outFilePath, ios::binary | ios::trunc);
         if (!fout) {
