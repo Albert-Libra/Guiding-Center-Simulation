@@ -1,5 +1,5 @@
 0           # magnetic field model (0=Dipole, 1=IGRF, 2=Custom)
-2           # wave model
+3           # wave model
 1           # plasmasphere model
 0.05        # step size, unit: [RE]
 10          # outer limit, unit: [RE]

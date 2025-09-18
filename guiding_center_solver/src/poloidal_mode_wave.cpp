@@ -301,13 +301,17 @@ VectorXd pol_wave(const double& t, const double& xgsm, const double& ygsm, const
     
     // E0i sequence (Gaussian distribution)
     VectorXd E0_seq = VectorXd::Zero(N * 2 - 1);
-    double sum_sq = 0.0;
-    for (int i = 0; i < N * 2 - 1; ++i) {
-        double x = (i - (N - 1)) / sigma;
-        E0_seq[i] = exp(-0.5 * x * x);
-        sum_sq += E0_seq[i] * E0_seq[i];
+    if (N == 1) {
+        E0_seq[0] = E0;
+    } else if (N > 1) {
+        double sum_sq = 0.0;
+        for (int i = 0; i < N * 2 - 1; ++i) {
+            double x = (i - (N - 1)) / sigma;
+            E0_seq[i] = exp(-0.5 * x * x);
+            sum_sq += E0_seq[i] * E0_seq[i];
+        }
+        E0_seq *= E0 / sqrt(sum_sq);
     }
-    E0_seq *= E0 / sqrt(sum_sq);
     
     // phi0 sequence
     VectorXd phi0_seq = VectorXd::Zero(N * 2 - 1);
