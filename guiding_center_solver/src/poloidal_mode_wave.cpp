@@ -28,6 +28,7 @@ double dmu, dL;
 double omega, E0, omega_width, sigma, phi0; 
 int N;
 unsigned int seed;
+std::string original_seed_str; // 保存配置文件中的原始seed字符串
 
 // 配置读取标志
 static bool config_loaded = false;
@@ -98,6 +99,7 @@ bool loadWaveConfig() {
                     case 8: dL = std::stod(value_str);break;
                     case 9: phi0 = std::stod(value_str); break;
                     case 10: // seed
+                        original_seed_str = value_str; // 保存原始字符串
                         if (value_str == "seed") {
                             // 使用当前时间作为种子
                             seed = static_cast<unsigned int>(std::time(nullptr));
@@ -137,7 +139,9 @@ bool loadWaveConfig() {
         std::cout << "  N = " << N << std::endl;
         std::cout << "  dmu = " << dmu << std::endl;
         std::cout << "  dL = " << dL << std::endl;
-        std::cout << "  seed = " << seed << std::endl;
+        std::cout << "  phi0 = " << phi0 << std::endl;
+        std::cout << "  seed (config) = " << original_seed_str << std::endl;
+        std::cout << "  seed (actual) = " << seed << std::endl;
         
         config_loaded = true;
         return true;
