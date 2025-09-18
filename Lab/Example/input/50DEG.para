@@ -13,4 +13,4 @@
 0.0001              ; % time step for calculating derivatives [s], t_step
 0.001               ; % spatial step for calculating derivatives [RE], r_step
 0                   ; % magnetic field model (0=Dipole, 1=IGRF, 2=Custom)
-1                   ; % wave field model (0=None, 1=Simple Harmonic, 2=Custom)
+3                   ; % wave field model (0=None, 1=Simple Harmonic, 2=Custom)

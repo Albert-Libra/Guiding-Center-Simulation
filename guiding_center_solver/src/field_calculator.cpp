@@ -7,6 +7,7 @@
 #include "magnetic_field_models.h"
 #include "poloidal_simple_harmonic_wave.h"
 #include "toroidal_simple_harmonic_wave.h"
+#include "poloidal_mode_wave.h"
 
 using namespace std;
 using namespace Eigen;
@@ -14,12 +15,54 @@ using namespace Eigen;
 extern int magnetic_field_model;
 extern int wave_field_model;
 
+// 缓存结构，用于避免重复计算pol_wave
+struct WaveCache {
+    double t, xgsm, ygsm, zgsm;
+    VectorXd result;
+    bool valid;
+    
+    WaveCache() : valid(false) {}
+    
+    bool matches(const double& t_in, const double& x_in, const double& y_in, const double& z_in) const {
+        const double eps = 1e-12;
+        return valid && 
+               std::abs(t - t_in) < eps && 
+               std::abs(xgsm - x_in) < eps && 
+               std::abs(ygsm - y_in) < eps && 
+               std::abs(zgsm - z_in) < eps;
+    }
+    
+    void update(const double& t_in, const double& x_in, const double& y_in, const double& z_in, const VectorXd& res) {
+        t = t_in; xgsm = x_in; ygsm = y_in; zgsm = z_in;
+        result = res;
+        valid = true;
+    }
+};
+
+static WaveCache pol_wave_cache;
+
+// 获取pol_wave结果（带缓存）
+VectorXd get_pol_wave_cached(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    if (pol_wave_cache.matches(t, xgsm, ygsm, zgsm)) {
+        return pol_wave_cache.result;
+    }
+    
+    VectorXd result = pol_wave::pol_wave(t, xgsm, ygsm, zgsm);
+    pol_wave_cache.update(t, xgsm, ygsm, zgsm, result);
+    return result;
+}
+
 
 //calculate the electric field vector in GSM coordinates
 Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
     if (wave_field_model == 0) return Vector3d(0.0, 0.0, 0.0);
     if (wave_field_model == 1) return simple_pol_wave::E_wave(t, xgsm, ygsm, zgsm);
     if (wave_field_model == 2) return simple_tor_wave::E_wave(t, xgsm, ygsm, zgsm);
+    if (wave_field_model == 3) {
+        // 使用pol_wave，提取电场部分（前3个分量）
+        VectorXd EB = get_pol_wave_cached(t, xgsm, ygsm, zgsm);
+        return Vector3d(EB[0], EB[1], EB[2]);
+    }
     // 其他模型...
     std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
     std::exit(EXIT_FAILURE);
@@ -37,6 +80,11 @@ Vector3d B_wav(const double& t, const double& xgsm, const double& ygsm, const do
     if (wave_field_model == 0) return Vector3d(0.0, 0.0, 0.0);
     if (wave_field_model == 1) return simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
     if (wave_field_model == 2) return simple_tor_wave::B_wave(t, xgsm, ygsm, zgsm);
+    if (wave_field_model == 3) {
+        // 使用pol_wave，提取磁场部分（后3个分量）
+        VectorXd EB = get_pol_wave_cached(t, xgsm, ygsm, zgsm);
+        return Vector3d(EB[3], EB[4], EB[5]);
+    }
     // 其他模型...
     std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
     std::exit(EXIT_FAILURE);

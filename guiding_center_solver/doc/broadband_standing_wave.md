@@ -109,10 +109,10 @@ According to Maxwell's equations, the magnetic field satisfies:
 Because $t$ and $\varphi$ only appear in the cosine function in $E$, the calculation can be simplified. Let $E_\varphi=\tilde E_\varphi\cos(m\varphi-\omega t+\varphi_0)$, then the magnetic field can be written as:
 
 ```math
-B_L=-\frac{\sin(m\varphi-\omega t)}{\omega}\frac{1}{h_\varphi h_\mu}\left(\frac{\partial(h_\varphi \tilde E_\varphi)}{\partial\mu}\right)
+B_L=-\frac{\sin(m\varphi-\omega t+\varphi_0)}{\omega}\frac{1}{h_\varphi h_\mu}\left(\frac{\partial(h_\varphi \tilde E_\varphi)}{\partial\mu}\right)
 ```
 ```math
-B_\mu=\frac{\sin(m\varphi-\omega t)}{\omega}\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi \tilde E_\varphi)}{\partial L}\right)
+B_\mu=\frac{\sin(m\varphi-\omega t+\varphi_0)}{\omega}\frac{1}{h_L h_\varphi}\left(\frac{\partial(h_\varphi \tilde E_\varphi)}{\partial L}\right)
 ```
 
 The partial derivatives of the electric field can be computed numerically.
@@ -143,7 +143,7 @@ According to Maxwell's equations, the magnetic field satisfies:
 Let $E_L=\tilde E_L\cos(m\varphi-\omega t+\varphi_0)$, then the magnetic field can be written as:
 
 ```math
-B_\varphi=\frac{\sin(m\varphi-\omega t)}{\omega}\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L \tilde E_L)}{\partial\mu}\right)
+B_\varphi=\frac{\sin(m\varphi-\omega t+\varphi_0)}{\omega}\frac{1}{h_L h_\mu}\left(\frac{\partial(h_L \tilde E_L)}{\partial\mu}\right)
 ```
 ```math
 B_\mu=-\frac{m}{\omega}\frac{1}{ h_\varphi}E_L
