@@ -8,6 +8,7 @@
 #include "poloidal_simple_harmonic_wave.h"
 #include "toroidal_simple_harmonic_wave.h"
 #include "poloidal_mode_wave.h"
+#include "toroidal_mode_wave.h"
 
 using namespace std;
 using namespace Eigen;
@@ -15,20 +16,22 @@ using namespace Eigen;
 extern int magnetic_field_model;
 extern int wave_field_model;
 
-// 缓存结构，用于避免重复计算pol_wave
+// 缓存结构，用于避免重复计算波场（使用thread_local确保线程安全）
 struct WaveCache {
     double t, xgsm, ygsm, zgsm;
+    int model; // wave_field_model
     VectorXd result;
     bool valid;
     
     WaveCache() : valid(false) {}
     
-    bool matches(const double& t_in, const double& x_in, const double& y_in, const double& z_in) const {
+    bool matches(const double& t_in, const double& x_in, const double& y_in, const double& z_in, int model_in) const {
         const double eps = 1e-12;
-        return valid && 
-               std::abs(t - t_in) < eps && 
-               std::abs(xgsm - x_in) < eps && 
-               std::abs(ygsm - y_in) < eps && 
+        return valid &&
+               model == model_in &&
+               std::abs(t - t_in) < eps &&
+               std::abs(xgsm - x_in) < eps &&
+               std::abs(ygsm - y_in) < eps &&
                std::abs(zgsm - z_in) < eps;
     }
     
@@ -39,33 +42,58 @@ struct WaveCache {
     }
 };
 
-static WaveCache pol_wave_cache;
+thread_local static WaveCache wave_cache;
 
-// 获取pol_wave结果（带缓存）
-VectorXd get_pol_wave_cached(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
-    if (pol_wave_cache.matches(t, xgsm, ygsm, zgsm)) {
-        return pol_wave_cache.result;
+// 获取波场结果（带缓存）
+VectorXd get_wave_cached(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
+    // 检查模型是否发生变化，如果变化则清空缓存
+    static thread_local int last_wave_model = -1;
+    if (last_wave_model != wave_field_model) {
+        wave_cache.valid = false;
+        last_wave_model = wave_field_model;
     }
     
-    VectorXd result = pol_wave::pol_wave(t, xgsm, ygsm, zgsm);
-    pol_wave_cache.update(t, xgsm, ygsm, zgsm, result);
+    if (wave_cache.matches(t, xgsm, ygsm, zgsm, wave_field_model)) {
+        return wave_cache.result;
+    }
+    
+    VectorXd result(6);
+    
+    // 根据wave_field_model计算对应的波场
+    switch (wave_field_model) {
+        case 0: result = VectorXd::Zero(6);break;
+        case 1: // simple_pol_wave
+            {
+                Vector3d E = simple_pol_wave::E_wave(t, xgsm, ygsm, zgsm);
+                Vector3d B = simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
+                result << E[0], E[1], E[2], B[0], B[1], B[2];
+            }
+            break;
+        case 2: // simple_tor_wave
+            {
+                Vector3d E = simple_tor_wave::E_wave(t, xgsm, ygsm, zgsm);
+                Vector3d B = simple_tor_wave::B_wave(t, xgsm, ygsm, zgsm);
+                result << E[0], E[1], E[2], B[0], B[1], B[2];
+            }
+            break;
+        case 3: result = pol_wave::pol_wave(t, xgsm, ygsm, zgsm);break;
+        case 4: result = tor_wave::tor_wave(t, xgsm, ygsm, zgsm);break;
+        default:
+            std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
+            std::exit(EXIT_FAILURE);
+    }
+    
+    wave_cache.update(t, xgsm, ygsm, zgsm, result);
+    wave_cache.model = wave_field_model; // 确保模型被正确设置
     return result;
 }
 
 
 //calculate the electric field vector in GSM coordinates
 Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
-    if (wave_field_model == 0) return Vector3d(0.0, 0.0, 0.0);
-    if (wave_field_model == 1) return simple_pol_wave::E_wave(t, xgsm, ygsm, zgsm);
-    if (wave_field_model == 2) return simple_tor_wave::E_wave(t, xgsm, ygsm, zgsm);
-    if (wave_field_model == 3) {
-        // 使用pol_wave，提取电场部分（前3个分量）
-        VectorXd EB = get_pol_wave_cached(t, xgsm, ygsm, zgsm);
-        return Vector3d(EB[0], EB[1], EB[2]);
-    }
-    // 其他模型...
-    std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
-    std::exit(EXIT_FAILURE);
+    // 使用统一的缓存函数，提取电场部分（前3个分量）
+    VectorXd EB = get_wave_cached(t, xgsm, ygsm, zgsm);
+    return Vector3d(EB[0], EB[1], EB[2]);
 }
 
 Vector3d B_bg(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
@@ -77,40 +105,14 @@ Vector3d B_bg(const double& t, const double& xgsm, const double& ygsm, const dou
 }
 
 Vector3d B_wav(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
-    if (wave_field_model == 0) return Vector3d(0.0, 0.0, 0.0);
-    if (wave_field_model == 1) return simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
-    if (wave_field_model == 2) return simple_tor_wave::B_wave(t, xgsm, ygsm, zgsm);
-    if (wave_field_model == 3) {
-        // 使用pol_wave，提取磁场部分（后3个分量）
-        VectorXd EB = get_pol_wave_cached(t, xgsm, ygsm, zgsm);
-        return Vector3d(EB[3], EB[4], EB[5]);
-    }
-    // 其他模型...
-    std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
-    std::exit(EXIT_FAILURE);
+    // 使用统一的缓存函数，提取磁场部分（后3个分量）
+    VectorXd EB = get_wave_cached(t, xgsm, ygsm, zgsm);
+    return Vector3d(EB[3], EB[4], EB[5]);
 }
 
 // calculate the magnetic field vector in GSM coordinates
 Vector3d Bvec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
     return B_bg(t, xgsm, ygsm, zgsm) + B_wav(t, xgsm, ygsm, zgsm);
-    // Vector3d B_bg;
-    // if (magnetic_field_model == 0) B_bg = dipole_bg(t, xgsm, ygsm, zgsm);
-    // else if (magnetic_field_model == 1) B_bg = igrf_bg(t, xgsm, ygsm, zgsm);
-    // // 其他模型...
-    // else {
-    //     std::cerr << "Error: Unknown magnetic_field_model = " << magnetic_field_model << std::endl;
-    //     std::exit(EXIT_FAILURE);
-    // }
-
-    // Vector3d B_wav;
-    // if (wave_field_model == 0) B_wav = Vector3d(0.0, 0.0, 0.0);
-    // else if (wave_field_model == 1) B_wav = simple_pol_wave::B_wave(t, xgsm, ygsm, zgsm);
-    // // 其他模型...
-    // else {
-    //     std::cerr << "Error: Unknown wave_field_model = " << wave_field_model << std::endl;
-    //     std::exit(EXIT_FAILURE);
-    // }
-    // return B_bg + B_wav;
 }
 
 // calculate the gradient and curvature of Bvec
