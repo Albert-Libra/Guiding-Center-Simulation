@@ -37,6 +37,15 @@ function geopack = geopack()
     % Set geogsm function
     instance.geogsm = @geogsm_wrapper;
 
+    % Set gsmgeo function
+    instance.gsmgeo = @gsmgeo_wrapper;
+
+    % Set smgsm function
+    instance.smgsm = @smgsm_wrapper;
+
+    % Set gsmsm function
+    instance.gsmsm = @gsmsm_wrapper;
+
     % Add destructor
     instance.unload = @()unload_library(libname);
 
@@ -144,4 +153,79 @@ function gsm_coords = geogsm_wrapper(varargin)
     calllib(libname, 'geogsm', xgeo, ygeo, zgeo, xgsm, ygsm, zgsm, J);
 
     gsm_coords = [xgsm.Value, ygsm.Value, zgsm.Value];
+end
+
+function geo_coords = gsmgeo_wrapper(varargin)
+    libname = 'geopack_caller';
+
+    if nargin == 3
+        x = varargin{1}; y = varargin{2}; z = varargin{3};
+    elseif nargin == 1 && isnumeric(varargin{1}) && length(varargin{1}) == 3
+        x = varargin{1}(1); y = varargin{1}(2); z = varargin{1}(3);
+    else
+        error('Invalid input parameters');
+    end
+
+    % Create pointers
+    xgsm = libpointer('doublePtr', double(x));
+    ygsm = libpointer('doublePtr', double(y));
+    zgsm = libpointer('doublePtr', double(z));
+    xgeo = libpointer('doublePtr', 0.0);
+    ygeo = libpointer('doublePtr', 0.0);
+    zgeo = libpointer('doublePtr', 0.0);
+    J = libpointer('int32Ptr', int32(-1));
+
+    calllib(libname, 'geogsm', xgeo, ygeo, zgeo, xgsm, ygsm, zgsm, J);
+
+    geo_coords = [xgeo.Value, ygeo.Value, zgeo.Value];
+end
+
+function gsm_coords = smgsm_wrapper(varargin)
+    libname = 'geopack_caller';
+
+    if nargin == 3
+        x = varargin{1}; y = varargin{2}; z = varargin{3};
+    elseif nargin == 1 && isnumeric(varargin{1}) && length(varargin{1}) == 3
+        x = varargin{1}(1); y = varargin{1}(2); z = varargin{1}(3);
+    else
+        error('Invalid input parameters');
+    end
+
+    % Create pointers
+    xsm = libpointer('doublePtr', double(x));
+    ysm = libpointer('doublePtr', double(y));
+    zsm = libpointer('doublePtr', double(z));
+    xgsm = libpointer('doublePtr', 0.0);
+    ygsm = libpointer('doublePtr', 0.0);
+    zgsm = libpointer('doublePtr', 0.0);
+    J = libpointer('int32Ptr', int32(1));
+
+    calllib(libname, 'smgsm', xsm, ysm, zsm, xgsm, ygsm, zgsm, J);
+
+    gsm_coords = [xgsm.Value, ygsm.Value, zgsm.Value];
+end
+
+function sm_coords = gsmsm_wrapper(varargin)
+    libname = 'geopack_caller';
+
+    if nargin == 3
+        x = varargin{1}; y = varargin{2}; z = varargin{3};
+    elseif nargin == 1 && isnumeric(varargin{1}) && length(varargin{1}) == 3
+        x = varargin{1}(1); y = varargin{1}(2); z = varargin{1}(3);
+    else
+        error('Invalid input parameters');
+    end
+
+    % Create pointers
+    xgsm = libpointer('doublePtr', double(x));
+    ygsm = libpointer('doublePtr', double(y));
+    zgsm = libpointer('doublePtr', double(z));
+    xsm = libpointer('doublePtr', 0.0);
+    ysm = libpointer('doublePtr', 0.0);
+    zsm = libpointer('doublePtr', 0.0);
+    J = libpointer('int32Ptr', int32(-1));
+
+    calllib(libname, 'smgsm', xsm, ysm, zsm, xgsm, ygsm, zgsm, J);
+
+    sm_coords = [xsm.Value, ysm.Value, zsm.Value];
 end
