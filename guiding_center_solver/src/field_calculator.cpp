@@ -93,6 +93,7 @@ VectorXd get_wave_cached(const double& t, const double& xgsm, const double& ygsm
 Vector3d Evec(const double& t, const double& xgsm, const double& ygsm, const double& zgsm) {
     // 使用统一的缓存函数，提取电场部分（前3个分量）
     VectorXd EB = get_wave_cached(t, xgsm, ygsm, zgsm);
+    // std::cout << "EB: " << EB.transpose() << std::endl;
     return Vector3d(EB[0], EB[1], EB[2]);
 }
 

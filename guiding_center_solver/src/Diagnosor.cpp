@@ -25,6 +25,11 @@ using namespace Eigen;
 const double c = 47.055; // Speed of light in RE/s
 string exeDir;
 
+// Use the same global model selectors as field_calculator
+// so that Evec/Bvec/B_wav honor the models parsed from .para
+extern int magnetic_field_model;
+extern int wave_field_model;
+
 int diagnose_gct(string filePath){
     // If in child process mode, reinitialize exeDir using PathUtils
     if (exeDir.empty()) {
@@ -107,6 +112,11 @@ int diagnose_gct(string filePath){
         ++idx;
     }
     para_in.close();
+
+    // Propagate model settings to globals used by field_calculator
+    // Without this, wave_field_model stays at default 0 and wave fields are always zero
+    ::magnetic_field_model = static_cast<int>(magnetic_field_model);
+    ::wave_field_model = static_cast<int>(wave_field_model);
 
     // calculate mu
     double mu;
