@@ -93,9 +93,21 @@ set_target_properties(geopack_caller PROPERTIES
     PREFIX ""
 )
 
+# 生成 coordinates_transfer_caller 动态链接库（C 接口已合并进 coordinates_transfer.cpp）
+add_library(coordinates_transfer_caller SHARED src/coordinates_transfer.cpp)
+target_include_directories(coordinates_transfer_caller PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/include/eigen-3.4.0)
+set_target_properties(coordinates_transfer_caller PROPERTIES
+    OUTPUT_NAME coordinates_transfer_caller
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/../postprocess/include
+    PREFIX ""
+)
+
 # 链接动态库时，Linux需要链接dl库
 if(UNIX)
     target_link_libraries(geopack_caller dl)
+    target_link_libraries(coordinates_transfer_caller dl)
     target_link_libraries(Solver dl)
     target_link_libraries(Diagnosor dl)
     target_link_libraries(Tracer dl)

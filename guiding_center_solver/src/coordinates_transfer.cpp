@@ -133,3 +133,69 @@ double h_mu(const double& L, const double& mu) {
     return RE * pow(L, 3)*pow(sin(theta),6)/sqrt(1 + 3*pow(cos(theta), 2));
 }
 
+// ================= C-exported wrappers for MATLAB loadlibrary =================
+#if defined(_WIN32) || defined(_WIN64)
+    #define EXPORT __declspec(dllexport)
+#else
+    #define EXPORT
+#endif
+
+extern "C" {
+
+// Cartesian -> spherical (r, theta, phi)
+EXPORT void cartesian_to_spherical_c(double x, double y, double z,
+                                     double* r, double* theta, double* phi) {
+    Eigen::Vector3d sph = cartesian_to_spherical(Eigen::Vector3d(x, y, z));
+    if (r) *r = sph[0];
+    if (theta) *theta = sph[1];
+    if (phi) *phi = sph[2];
+}
+
+// Cartesian -> dipole (L, phi, mu)
+EXPORT void cartesian_to_dipole_c(double x, double y, double z,
+                                  double* L, double* phi, double* mu) {
+    Eigen::Vector3d dip = cartesian_to_dipole(Eigen::Vector3d(x, y, z));
+    if (L) *L = dip[0];
+    if (phi) *phi = dip[1];
+    if (mu) *mu = dip[2];
+}
+
+// Spherical basis (e_r, e_theta, e_phi) as 3x3 column-major array
+EXPORT void spherical_basis_c(double x, double y, double z, double* basis_out /* len=9 */) {
+    if (!basis_out) return;
+    Eigen::Matrix3d bas = spherical_basis(Eigen::Vector3d(x, y, z));
+    for (int j = 0; j < 3; ++j)
+        for (int i = 0; i < 3; ++i)
+            basis_out[i + 3*j] = bas(i, j);
+}
+
+// Dipole basis (e_L, e_phi, e_mu) as 3x3 column-major array
+EXPORT void dipole_basis_c(double x, double y, double z, double* basis_out /* len=9 */) {
+    if (!basis_out) return;
+    Eigen::Matrix3d bas = dipole_basis(Eigen::Vector3d(x, y, z));
+    for (int j = 0; j < 3; ++j)
+        for (int i = 0; i < 3; ++i)
+            basis_out[i + 3*j] = bas(i, j);
+}
+
+// Dipole scale factors (h_L, h_phi, h_mu)
+EXPORT void dipole_scale_factor_c(double x, double y, double z,
+                                  double* hL, double* hphi, double* hmu) {
+    Eigen::Vector3d h = dipole_scale_factor(Eigen::Vector3d(x, y, z));
+    if (hL) *hL = h[0];
+    if (hphi) *hphi = h[1];
+    if (hmu) *hmu = h[2];
+}
+
+// mu2theta
+EXPORT void mu2theta_c(double mu, double L, double* theta) {
+    if (theta) *theta = mu2theta(mu, L);
+}
+
+// h_phi, h_L, h_mu
+EXPORT void h_phi_c(double L, double mu, double* out) { if (out) *out = h_phi(L, mu); }
+EXPORT void h_L_c(double L, double mu, double* out)   { if (out) *out = h_L(L, mu); }
+EXPORT void h_mu_c(double L, double mu, double* out)  { if (out) *out = h_mu(L, mu); }
+
+} // extern "C"
+
